@@ -1,7 +1,7 @@
 {
   "name": "brian-mechanisms",
   "version": "1.0.0",
-  "description": "Brian Mechanisms Simulator",
+  "description": "Brian Mechanisms Simulator. Provides a virtual environment for Precision Agriculture.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
