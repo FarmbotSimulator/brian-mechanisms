@@ -1,0 +1,241 @@
+{
+    "FarmBot": {
+        "comments": "applications should be in lowercase",
+        "applications": [
+            "agriculture"
+        ],
+        "controllers": {
+            "Cloud": {
+                "FarmBot":{"url": "https://my.farmbot.io/api", "type":"API"},
+                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"}
+            },
+            "Keyboard":true,
+            "Joystick":true
+        },
+        "controller": "Cloud",
+        "bots": {
+            "Genesis": {
+                "Length": 3000,
+                "Width": 1500,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Genesis XL": {
+                "Length": 6000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            }, 
+            "Genesis MAX": {
+                "Length": 18000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false
+            },
+            "Express": {
+                "Length": 3000,
+                "Width": 1200,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Express XL": {
+                "Length": 6000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Express MAX": {
+                "Length": 18000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false
+            }
+        }
+    },
+    "FarmBot Mod": {
+        "comments": "applications should be in lowercase",
+        "applications": [
+            "agriculture"
+        ],
+        "controllers": {
+            "Cloud": {
+                "FarmBot":{"url": "https://my.farmbot.io/api", "type":"API"},
+                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"}
+            },
+            "Keyboard":true,
+            "Joystick":true
+        },
+        "controller": "Cloud",
+        "bots": {
+            "Genesis": {
+                "Length": 3000,
+                "Width": 1500,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Genesis XL": {
+                "Length": 6000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            }, 
+            "Genesis MAX": {
+                "Length": 18000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false
+            },
+            "Express": {
+                "Length": 3000,
+                "Width": 1200,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Express XL": {
+                "Length": 6000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true
+            },
+            "Express MAX": {
+                "Length": 18000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false
+            }
+        }
+    },
+    "BM CableBot": {
+        "applications": [
+            "agriculture",
+            "construction"
+        ],
+        "controllers": {
+            "Cloud": {
+                "FarmBot":{"url": "https://my.farmbot.io/api", "type":"API"},
+                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"}
+            },
+            "Keyboard":true,
+            "Joystick":true
+        },
+        "controller": "Cloud",
+        "bots": {
+            "Express": {
+                "Length": 18000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "N"],
+                "canRaise": false,
+                "numCableSets": 2
+            }
+        }
+    },
+    "BrianMechanism": {
+        "applications": [
+            "agriculture",
+            "construction",
+            "surveying",
+            "manufacturing"
+        ],
+        "controllers": {
+            "Cloud": {
+                "FarmBot":{"url": "https://my.farmbot.io/api", "type":"API"},
+                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"}
+            },
+            "Keyboard":true,
+            "Joystick":true
+        },
+        "controller": "Cloud",
+        "bots": {
+            "Genesis": {
+                "Length": 3000,
+                "Width": 1500,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true,
+                "orientation": 1
+            },
+            "Genesis XL": {
+                "Length": 6000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true,
+                "orientation": 1
+            }, 
+            "Genesis MAX": {
+                "Length": 18000,
+                "Width": 3000,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false,
+                "orientation": 1
+            },
+            "Express": {
+                "Length": 3000,
+                "Width": 1200,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true,
+                "orientation": 0
+            },
+            "Express XL": {
+                "Length": 6000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": true,
+                "orientation": 0
+            },
+            "Express MAX": {
+                "Length": 18000,
+                "Width": 2400,
+                "Plant Height": 500,
+                "plantHeightLimits": [500, 1000],
+                "bedTypes": ["W", "C"],
+                "canRaise": false,
+                "orientation": 0
+            }
+        }
+    },
+    "BM Handle": {
+        "applications": [
+            "retail"
+        ],
+        "bots": {
+            "Express": {
+
+            }
+        }
+    }
+}
