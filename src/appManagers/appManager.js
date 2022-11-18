@@ -6,7 +6,7 @@ import bMCableBot from "../botManagers/bMCableBot"
 const BMCableBot = bMCableBot // for eval
 import brianMechanism from "../botManagers/brianMechanism"
 const BrianMechanism = brianMechanism // for eval
-
+const botTypes = require("../../store/botTypes.json");
 export default class appManager {
     constructor() {
         this.parent = null
@@ -42,13 +42,19 @@ export default class appManager {
     copyFrom(sibling) {
         // if (typeof this.copyFromFromModel !== 'undefined') return this.copyFromFromModel(sibling)
         // this.parent.application  = sibling.application
-        this.gardenLocation.x = sibling.x
-        this.gardenLocation.y = sibling.y
-        this.botSize.width = sibling.width
-        this.botSize.length = sibling.length
-        this.workspaceSize.width = sibling.width
-        this.workspaceSize.length = sibling.length
-        // this.plantHeight = sibling.plantHeight
+        // this.gardenLocation.x = sibling.x
+        // this.gardenLocation.y = sibling.y
+        // this.botSize.width = sibling.width
+        // this.botSize.length = sibling.length
+        // this.workspaceSize.width = sibling.width
+        // this.workspaceSize.length = sibling.length
+        this.gardenLocation.x = sibling.gardenLocation.x
+        this.gardenLocation.y = sibling.gardenLocation.y
+        this.botSize.width = sibling.botSize.width =
+        this.botSize.length = sibling.botSize.length
+        this.workspaceSize.width = sibling.workspaceSize.width 
+        this.workspaceSize.length = sibling.workspaceSize.length
+
         this.botType = sibling.botType
         if (typeof sibling.bot !== 'undefined' && sibling.bot) this.initBot(sibling)
     }
@@ -95,10 +101,18 @@ export default class appManager {
     initBot(sibling) {
         let botManagerName = this.botType.replace(/ /g, '')
         this.bot = eval(`new ${botManagerName}()`)
+        this.bot.setBotConfig(botTypes[this.botType])
         this.bot.setAppManager(this)
         if (sibling) {
             this.bot.copyFromFromModel(this, sibling)
         }
+    }
+    // check. start here.... Even cloud controllers should have different types
+    // And proxies should have different types
+    initBotController = (instanceNumber, params, proxyUrl) => {
+        this.parent.applyInstance()
+        if (this.botContoller) this.botContoller.destroy()
+        self.botContoller = new farmbotController(this, params, instanceNumber)
     }
 
 }

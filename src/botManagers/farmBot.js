@@ -13,19 +13,10 @@ export default class farmBot extends botManager {
         this.bedType = ""
     }
     getSizeParamsFromModel(appManager, farmBot) {
-        let gardenX, gardenY, botLength, botWidth
-        gardenX = appManager.gardenLocation.x
-        gardenY = appManager.gardenLocation.y
-        botWidth = appManager.botSize.width
-        botLength = appManager.botSize.length
-        let {  botType, botModel } = appManager
-        let { bedTypes, raised, canRaise, bedType, plantHeight, plantHeightLimits } = farmBot
-        return { gardenX, gardenY, botLength, botWidth, plantHeight, botType, botModel, canRaise, bedType, bedTypes, raised, plantHeightLimits }
+        let ret = super._getSizeParamsFromModel(appManager, farmBot)
+        return ret;
     }
     continueCopyFromFromModel(appManager, sibling) {
-    }
-    updateParamForModel(farmBot, param, val) {
-        farmBot[param] = val
     }
 
 }

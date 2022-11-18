@@ -6,8 +6,10 @@
         ],
         "controllers": {
             "Cloud": {
-                "FarmBot":{"url": "https://my.farmbot.io/api", "type":"API"},
-                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"}
+                "FarmBot":{"url": "my.farmbot.io/api", "type":"API"},
+                "FarmBot1":{"url": "farm.bot/api", "type":"API"},
+                "FarmBotProxy":{"url": "ubuntu.cseco.co.ke", "type":"proxy"},
+                "FarmBotProxy1":{"url": "proxy.cseco.co.ke", "type":"proxy"}
             },
             "Keyboard":true,
             "Joystick":true

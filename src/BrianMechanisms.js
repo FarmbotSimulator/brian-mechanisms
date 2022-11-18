@@ -251,6 +251,9 @@ class BrianMechanismsSimulator {
     botModelParams(bot, model) {
         return botTypes[bot].bots[model];
     }
+    botControllers(bot) {
+        return botTypes[bot].controllers;
+    }
 
     startEditingInstance(instanceNumber) {
         let self = this.instances[instanceNumber]
@@ -298,11 +301,7 @@ class BrianMechanismsSimulator {
     applyInstanceDev(instanceNumber) {
         let self = this.instances[instanceNumber]
         self.application = self._application // retain
-        console.log(self._appManager)
-        console.log("====")
-        self.appManager.copyFrom(self._appManager)
-        
-        // this.botType = this._botType
+        self.appManager.copyFrom(self._appManager)        
     }
     applyInstance(instanceNumber) {
         let self = this.instances[instanceNumber]

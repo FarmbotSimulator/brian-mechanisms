@@ -14,33 +14,16 @@ export default class farmBotMod extends botManager {
         this.zAxesperGantry = 2
     }
     getSizeParamsFromModel(appManager, farmBot) {
-        let gardenX, gardenY, botLength, botWidth
-        gardenX = appManager.gardenLocation.x
-        gardenY = appManager.gardenLocation.y
-        botWidth = appManager.botSize.width
-        botLength = appManager.botSize.length
-        let { botType, botModel } = appManager
-        let { numGantries, zAxesperGantry, bedTypes, raised, canRaise, bedType, plantHeight } = farmBot
-        return { gardenX, gardenY, botLength, botWidth, plantHeight, botType, botModel, canRaise, bedType, bedTypes, raised, numGantries, zAxesperGantry }
+        let ret = super._getSizeParamsFromModel(appManager, farmBot)
+        let { numGantries, zAxesperGantry} = farmBot
+        ret.numGantries = numGantries
+        ret.zAxesperGantry = zAxesperGantry
+        return ret;
     }
-    // copyFromFromModel(appManager, sibling) {
-    //     let farmBot = appManager.bot 
-    //     let siblingBot = sibling.bot
-    //     appManager.botModel = sibling.botModel
-    //     farmBot.bedType = siblingBot.bedType
-    //     farmBot.canRaise = siblingBot.canRaise
-    //     farmBot.raised = siblingBot.raised
-    //     farmBot.numGantries = siblingBot.numGantries
-    //     farmBot.zAxesperGantry = siblingBot.zAxesperGantry
-    // }
     continueCopyFromFromModel(appManager, sibling) {
         let farmBot = appManager.bot
         let siblingBot = sibling.bot
         farmBot.numGantries = siblingBot.numGantries
         farmBot.zAxesperGantry = siblingBot.zAxesperGantry
     }
-    updateParamForModel(farmBot, param, val) {
-        farmBot[param] = val
-    }
-
 }

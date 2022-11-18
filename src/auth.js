@@ -111,10 +111,10 @@ class authController {
      * @param {string} params.password  - FarmBot webapp email
      * @returns {Promise} A promise that is resolved with token if log in is successful or rejected if unsuccessful
      */
-    async logIn(params) {
+    async logIn(params, farmbotUrl) {
         return new Promise(async (resolve, reject) => {
             let [err, care] = await to(axios
-                .post(`${FARMBOTURL}/tokens`, { user: params }));
+                .post(`https://${farmbotUrl}/tokens`, { user: params }));
             if (err) {
                 return reject(
                     err.response.data.auth || err
