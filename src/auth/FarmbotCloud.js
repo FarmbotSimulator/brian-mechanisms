@@ -24,7 +24,7 @@ const FARMBOTURL = "https://my.farmbot.io/api"; // FamBot REST API
  * authController
  */
 
-class authController {
+export default class FarmbotCloud {
     constructor() {
 
     }
@@ -62,18 +62,6 @@ class authController {
             })
             this.refreshTokenData();
             resolve(true);
-            // axios.get(`${FARMBOTURL}/tokens`, {
-            //     params,
-            //     headers
-            // }).then(response => {
-            //     this.setStatus({
-            //         token: response.data.token.encoded
-            //     })
-            //     this.refreshTokenData();
-            //     resolve(true)
-            // }).catch(error => {
-            //     reject(true);
-            // })
         })
     }
 
@@ -111,10 +99,10 @@ class authController {
      * @param {string} params.password  - FarmBot webapp email
      * @returns {Promise} A promise that is resolved with token if log in is successful or rejected if unsuccessful
      */
-    async logIn(params, farmbotUrl) {
+    async logIn(password) {
         return new Promise(async (resolve, reject) => {
             let [err, care] = await to(axios
-                .post(`https://${farmbotUrl}/tokens`, { user: params }));
+                .post(`https://${this.authenticationServerUrl}/tokens`, { user: {email:this.email, password} }));
             if (err) {
                 return reject(
                     err.response.data.auth || err
@@ -177,4 +165,4 @@ class authController {
     }
 }
 
-export const auth = new authController();
+// export const auth = new authController();

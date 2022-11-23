@@ -52,7 +52,7 @@ export class plantPlacer {
         }
     }
     placeGeneric(parent, instanceNumber, plantName) {
-        let cloned = parent.getSoilTransform(instanceNumber)
+        let cloned = parent.getRootNode(instanceNumber)
         let shapeId = this.getPlantShapeId(plantName)
         let Corn = cloned.children[0].children[shapeId]
         let elem = Corn.clone()

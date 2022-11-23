@@ -20,6 +20,7 @@ import construction from "./appManagers/construction";
 import manufacturing from "./appManagers/manufacturing";
 import retail from "./appManagers/retail";
 import surveying from "./appManagers/surveying";
+import {to} from "await-to-js";
 const Agriculture = agriculture, // for eval
     Construction = construction,
     Manufacturing = manufacturing,
@@ -272,11 +273,11 @@ class BrianMechanismsSimulator {
         switch (clone) {
             case false:
                 if (typeof self.appManager === 'undefined') self.appManager = eval(`new ${self._application}()`)
-                appManager =  self.appManager;
+                appManager = self.appManager;
                 break;
             default:
                 self._appManager = eval(`new ${self._application}()`)
-                appManager =  self._appManager;
+                appManager = self._appManager;
         }
         // create or copy the bot location and other default vars
         appManager.setParent(self)
@@ -298,16 +299,39 @@ class BrianMechanismsSimulator {
         self._appManager.copyFrom(self.appManager)
         self._application = self.application // retain
     }
-    applyInstanceDev(instanceNumber) {
+    async applyInstanceDev(instanceNumber) {
         let self = this.instances[instanceNumber]
         self.application = self._application // retain
-        self.appManager.copyFrom(self._appManager)        
+        self.appManager.copyFrom(self._appManager)
+        if (typeof self.appManager.botType === 'undefined' || !self.appManager.botType) {
+            return
+        }
+        let [err, care] = await to(self.appManager.getSceneManager());
+        if(err){
+            console.log(err)
+            //return // enable in production
+        }
+        self.appManager.createWorkspace()
+    }
+    // does not manage the scene
+    preapplyInstance(instanceNumber) {
+        instanceNumber = instanceNumber || this.selectedInstance
+        if (typeof self.application === 'undefined' || !self.application)
+            self.application = self._application
+        console.log("ANOG")
+        this.applyInstanceDev(instanceNumber)
+        console.log("RQ qorkspace....")
+
     }
     applyInstance(instanceNumber) {
         let self = this.instances[instanceNumber]
+        if (typeof self._application === 'undefined' || !self._application) { // undefined or null
+            this.destroyInstance(instanceNumber)
+            return
+        }
         self.appManager = this.initAppManager(self, false)
         this.applyInstanceDev(instanceNumber)
-        
+
         // let self = this.instances[instanceNumber];
         // this.resizeGarden(instanceNumber)
         // this.createSoilBed(instanceNumber)
@@ -319,18 +343,27 @@ class BrianMechanismsSimulator {
         // this.moveBot(instanceNumber, true)
         // this.positionPlants(instanceNumber)
     }
-    destroyInstance(instanceNumber) {
+    destroyInstance(instanceNumber) { //check the rest...
         console.log("destroying ", instanceNumber)
-        // this.selectedInstance = null
+        this.selectedInstance = undefined
         // let self = this.instances[instanceNumber];
         // let rootNodeId = self.rootNodeId
         // const object = this.WbWorld.instance.nodes.get(rootNodeId);
         // object.delete();
         // this.webotsView._view.animation._view.x3dScene.render();
-        // delete this.instances[instanceNumber]
+        delete this.instances[instanceNumber]
     }
     deleteAllInstances() {
         Object.keys(this.instances).map(instanceNumber => this.destroyInstance(instanceNumber))
+    }
+
+    checkBasicData(instanceNumber) { // check if earlier application had been made
+        if (typeof instanceNumber === 'undefined') instanceNumber = this.selectedInstance
+        let self = this.instances[instanceNumber]
+        if (typeof self._application === 'undefined' || !self._application) { // undefined or null
+            this.destroyInstance(instanceNumber)
+        }
+        if (typeof self.appManager === "undefined") this.destroyInstance(instanceNumber)
     }
 
 }

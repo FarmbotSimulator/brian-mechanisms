@@ -1,4 +1,4 @@
-/* Copyright 2022 Brian Onang'o
+/* Copyright 2020 Brian Onang'o
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,41 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-"use strict";
-/**
- * @module farmbotController
- */
 import mqtt from 'mqtt'
 
-const BROKERWSS = "ubuntu.cseco.co.ke"
-const BROKERWS = "ubuntu.cseco.co.ke"
-const BROKERPORTWSS = "1882"
-const BROKERPORTWS = "1881"
-var WSS = false
-WSS = window.location.protocol === "https:" ? true : false
-
-export class farmbotController {
-    askForPlantInterval = null
-    constructor(parent, params, instanceNumber) {
-        this.parent = parent
-        this.instanceNumber = instanceNumber
-        this.connectMQTT(params);
+export default class FarmbotProxy {
+    constructor() {
+        console.log("starting proxy...")
+        this.askForPlantInterval = null
     }
-
     /**
      * connect to MQTT Broker
      *
      * @returns {Promise} A promise that is resolved with mqtt instance if connection is successful or rejected with the error
      */
-    async connectMQTT(params) {
-        let { instanceNumber } = this
-        let broker = `${WSS ? "wss" : "ws"}://${WSS ? BROKERWSS : BROKERWS}:${WSS ? BROKERPORTWSS : BROKERPORTWS}/mqtt`
-        let userName = params.user.email
+     async connect(password) {
+        let broker = this.controlServerUrl
+        let {email} = this.parent.bot
+        let userName = email
+        console.log({email, broker})
         return new Promise((resolve, reject) => {
             const client = mqtt.connect(broker, {
                 clean: true,
                 // clientId: `FBJS-${Farmbot.VERSION}-${genUuid()}`,
-                password: params.user.password,
+                password: password,
                 protocolId: "MQIsdp",
                 protocolVersion: 3,
                 // reconnectPeriod,
@@ -58,12 +45,11 @@ export class farmbotController {
                 reject(error)
             })
             client.on("connect", async () => {
-                // console.log("connected")
+                console.log("connected")
                 client.subscribe(`${userName}`, {
                     qos: 1
                 });
                 this.askCurrentLocation()
-                // this.updateLocation()
                 resolve(client)
             })
             client.on("message", (wholeTopic, message) => {
@@ -84,15 +70,15 @@ export class farmbotController {
                         let setWhat = wholeTopic.split("/")[3];
                         switch (setWhat) {
                             case "points":
-                                this.parent.processPoints(JSON.parse(msg), instanceNumber)
+                                this.parent.processPoints(JSON.parse(msg), instanceNumber) // check
                                 break;
                         }
                         break;
                     case "move_relative":
-                        this.parent.moveRelative(JSON.parse(msg), instanceNumber)
+                        this.parent.moveRelative(JSON.parse(msg), instanceNumber)  // check
                         break;
                     case "move_absolute":
-                        this.parent.moveAbsolute(JSON.parse(msg), instanceNumber)
+                        this.parent.moveAbsolute(JSON.parse(msg), instanceNumber)  // check
                         break;
                     case "emergency_lock":
                         this.parent.emergencyStop(instanceNumber)
@@ -105,8 +91,8 @@ export class farmbotController {
         let topic = `/${this.botId}/CURRENTLOCATION`
         this.client.publish(topic, JSON.stringify({}))
     }
-    updateLocation() {
-        let self = this.parent.instances[this.instanceNumber]
+    updateLocation() { // check... We may  
+        let self = this.parent.instances[this.instanceNumber] // where to we save the x,y,z?
         let logData = {
             "x": Math.round(self.location.x),
             "y": Math.round(self.location.y),
@@ -128,9 +114,9 @@ export class farmbotController {
         this.client.publish(`/${this.botId}/GET`, "points") // work out this one
     }
 
-    sendLocationData(location) {
+    // sendLocationData(location) {
 
-    }
+    // }
 
 
     destroy() {
@@ -139,4 +125,5 @@ export class farmbotController {
             this.client.end()
         } catch (error) { }
     }
+    
 }

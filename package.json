@@ -9,6 +9,7 @@
   "author": "Brian Onang'o",
   "license": "Apache-2.0",
   "dependencies": {
-
+    "await-to-js": "^3.0.0",
+    "mqtt": "^4.3.7"
   }
 }

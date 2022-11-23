@@ -1,261 +1,18 @@
-/**
- * up to 4 per stuff
- * GARDENCONTAINER :: getRootNode() first transform from down
- * **-> GARDENTRANSFORM
- * ****     -> COLLECTIONSTRANSFORM
- *                  WoodenBlock
- *                  Concrete Support
- *                  DragChain Support
- *                  20X40Vslot
- *                  Corn
- *                  Anemone
- * ****     -> BEDTRANSFORM
- *                  Soil
- *                  Plants
- *                  Legs
- *                  Concrete
- *                         
- */
-// const { MixMaterial } = require('babylonjs-materials');
 import { farmbotController } from "./farmbotController"
 import { plantPlacer } from './plantPlacer'
 
 let planter = new plantPlacer()
 
 class angelBot_ {
-    instances = {}
-    hadstarted = false;
-    numInstances = 0
-    constructor() {
-        this.selectedInstance = null
-        // this.state = state
-    }
-    /**
-     * Init handler
-     */
-    initHandler = () => {
-        this.hadstarted = true;
-        let elem = this.vueObj.$refs.botsElement
-    }
-    botTypes = (application) => {
-        let tmp = require("./boTypes.json")
-        let ret = {}
-        if (!application) return {}
-        Object.keys(tmp).map(bot => {
-           // console.log({ bot, application, as: tmp[bot].applications })
-            let botApplications = tmp[bot].applications || []
-            if (botApplications.includes(application.toLowerCase())) {
-                ret[bot] = tmp[bot].bots
-            }
-        })
-        return ret;
-    }
-    applications = () => {
-        return require("./applications.json")
-    }
-    destroyInitHandler() {
-    }
-    initInstance(vueObj, element) {
-        this.startedSelector = false;
-        this.vueObj = vueObj
-        if (!this.hadstarted)
-            window.onload = this.initHandler
-    }
-    unloadScene = (self) => {
-    }
+    
     createInstance() {
-        let instanceNumber = /*this.numInstances*/ new Date().getTime()
-        // setTimeout(() => {
-        this.selectedInstance = instanceNumber
-        this.instances[instanceNumber] = {
-            application: null, // null
-            showPlants: false,
-            bed: false, // false 
-            raised: true, // false
-            raisedHeight: 750,
-            plantHeight: 500,
-            plantHeightLimits: [500, 1000],
-            movingRequestId: 0, // for controlling moving request so there is no conflict
-            workSpaceLength: 18000 + 1000,
-            workSpaceWidth: 3000 + 1000,
-            botLength: 18000,
-            botWidth: 3000,
-            soilDepth: 100,
-            plankThickness: 18, // 18mm
-            legs: {
-                width: 100,
-                length: 100,
-            },
-            location: {
-                x: 0, y: 0, z: 0
-            },
-            initialCamRadius: 400,
-            botType: null,//null,
-            botTypeType: null,
-            enableExternalControls: false,
-            joystick: { x: 0, y: 0, z: 0, speed: {} },
-            topofBed: 0,
-            x: 0,
-            y: 0,
-            speedFactor: 1,
-            reallyShowPlants: () => {
-                this.reallyShowPlants(instanceNumber)
-            }
-        }
-        /**
-         * Work out its x and y so that it is not in another's workspace
-         * Create its soil
-         */
-        // if (Object.keys(this.instances || {}).length > 1) {
-        let x = Math.floor((Math.random() * (1 - -1) + -1) * 1000)
-        let y = Math.floor((Math.random() * (1 - -1) + -1) * 1000)
-        let len = 18000 + 1000
-        let wid = 3000 + 1000
-        let startX = x - len / 2
-        let startY = y - wid / 2
-        let stopX = startX + len
-        let stopY = startY + wid
-        let startStartX = x
-        let startStartY = y
-        // check if its inside another rectangle
-        let intersectX = (instance) => {
-            if (
-                Math.abs(instance.x - x) < (instance.workSpaceWidth / 2 + wid / 2)
-            ) return true;
-            return false
-        }
-        let intersectY = (instance) => {
-            if (
-                Math.abs(instance.y - y) < (instance.workSpaceLength / 2 + len / 2)
-            ) return true;
-            return false
-        }
-        let intersects = (instance) => {
-            return intersectX(instance) && intersectY(instance)
-            // if (
-            //     ((instance.startYI >= startY && startY >= instance.stopYI) ||
-            //         (instance.startYI >= stopY && stopY >= instance.stopY)) &&
-            //     ((instance.startXI <= startX && startX <= instance.stopXI) ||
-            //         (instance.startXI <= stopX && stopX <= instance.stopXI))
-            // ) return true;
-            // return false
-        }
-        let xDir = x >= 0 ? 1 : -1;
-        let yDir = y >= 0 ? 1 : -1;
-        let num = 0
-        Object.values(this.instances).slice(0, -1).map((instance, index) => {
-            // if(index === Object.values(this.instances).length - 1)return // ignore last element in 
-            let xI = instance["x"]
-            let yI = instance["y"]
-            let widI = instance["workSpaceWidth"]
-            let lenI = instance["workSpaceLength"]
-            let startXI = xI - lenI / 2
-            let startYI = yI + widI / 2
-            let stopXI = startXI + lenI
-            let stopYI = startYI - widI
-            let tmp = {
-                startXI, startYI, stopXI, stopYI, x: xI, y: yI, workSpaceWidth: widI, workSpaceLength: lenI
-            }
-            if (intersects(tmp)) {
-                // move it away from the
-                while (intersects(tmp)) {
-                    x += xDir
-                    y += yDir
-                    startX = x - len / 2
-                    startY = y + wid / 2
-                    stopX = startX + len
-                    stopY = startY - wid
-                }
-                console.table({
-                    xes: Math.abs(xI - x),
-                    compareX: widI,
-                    yes: Math.abs(yI - y),
-                    comparey: lenI,
-                    xInt: intersectX(tmp),
-                    yInt: intersectY(tmp),
-                    x, xI,
-                    y, yI,
-                    num: num++
-                })
-                // if(intersectX(tmp))y = startStartY
-                // else if(intersectY(tmp)) x=startStartX
-                // move it only along a single axis, reset the translation along the other axis
-            } else {
-                console.table({
-                    "Zero": true,
-                    xes: Math.abs(xI - x),
-                    compareX: widI,
-                    yes: Math.abs(yI - y),
-                    comparey: lenI,
-                    xInt: intersectX(tmp),
-                    yInt: intersectY(tmp),
-                    x, xI,
-                    y, yI,
-                    num: num++
-                })
-                // // move it towards zero until it intersects..
-                // // let xDir = x >= 0 ? -1 : 1;
-                // // let yDir = y >= 0 ? -1 : 1;
-                // while (!intersects(tmp)) {
-                //     x -= xDir
-                //     y -= yDir
-                //     startX = x - len / 2
-                //     startY = y + wid / 2
-                //     stopX = startX + len
-                //     stopY = startY - wid
-                // }
-                // if(intersects(tmp)){
-                //    // console.log("asdhkh");
-                //     continue REMOVEINTERSECTION;
-                // }
-                // // if(intersectX)x=startStartX
-                // // else if(intersectY) y = startStartY
-                // console.table({
-                //     hd: "zero",
-                //     startYI: tmp.startYI,
-                //     startY,
-                //     stopY,
-                //     stopYI: tmp.stopYI,
-                //     xInt: intersectX(tmp),
-                //     yInt: intersectY(tmp),
-                //     startXI: tmp.startXI,
-                //     startX,
-                //     stopX,
-                //     stopXI: tmp.stopXI,
-                //     stopX,
-                //     x,
-                //     y
-                // })
-            }
-        })
-        //                 console.table({
-        //                     xes: Math.abs(xI-x),
-        //                     compareX: widI,
-        //                     yes: Math.abs(yI-y),
-        //                     comparey: lenI,
-        // xInt: intersectX(tmp),
-        // yInt: intersectY(tmp),
-        //                 })
-        // move it towards the origin
-        this.instances[instanceNumber].x = x
-        this.instances[instanceNumber].y = y
-        // }
-        // console.log(this.instances[instanceNumber].x, this.instances[instanceNumber].y)
         this.createSoil(instanceNumber)
-        this.numInstances++
-        // }, 100)
-        return instanceNumber
     }
     changeBotType = (instanceNumber) => {
         let self = this.instances[instanceNumber];
         if (!self.botType || !self.botTypeType) return
         let compare = `${self.botType}${self.botTypeType}`
         compare = compare.toUpperCase().replace(/ /g, '')
-       // console.log(compare)
-       // console.log(compare)
-       // console.log(compare)
-       // console.log(compare)
-       // console.log(compare)
         switch (compare) {
             case "FARMBOTGENESIS":
             case "FARMBOTGENESISXL":
@@ -276,18 +33,8 @@ class angelBot_ {
             default:
         }
     }
-    getRootNode = () => {
-        const webotsView = document.getElementsByTagName('webots-view')[0];
-        const WbWorld = webotsView._view.animation._view.x3dScene.WbWorld
-        let sceneTree = WbWorld.instance.sceneTree
-        let funcNameRegex = /class ([^ ]+)/;
-        return Array.from(sceneTree).reverse().filter((a, b) => (funcNameRegex).exec(Object.getPrototypeOf(a).constructor.toString())[1] === "WbTransform")[0]
-    }
-    getRobotSNode = (instanceNumber) => {
-        let self = this.instances[instanceNumber];
-        let rootNode = this.WbWorld.instance.nodes.get(self.rootNodeId)
-        return rootNode.children[1].children[1].children[1]
-    }
+    
+    
     placeRobotZLocation = (instanceNumber) => { // gantry
         let self = this.instances[instanceNumber];
         let getRobotSNode = this.getRobotSNode(instanceNumber);
@@ -459,7 +206,7 @@ class angelBot_ {
         }
 
     }
-    addSelector = () => {
+    addSelector = () => { // put in wBWolrd.. but how to init it???
         if (!this.startedSelector) {
             const webotsView = document.getElementsByTagName('webots-view')[0];
             webotsView.mouseEventsExtra.onmouseup = (event) => {
@@ -471,19 +218,15 @@ class angelBot_ {
                         tmp = "n" + webotsView.mouseEvents.Selector.preciseId
                     }
                     if (typeof tmp === "number") tmp = `n${tmp}`
-                    // console.log("inside", WbWorld.instance.nodes.get(Selector.preciseId), Selector.preciseId)
                     let rootNode = this.getRootNode();
                     id = rootNode.id
-                    // check if this is a descendant of rootNode;
                     let elem = this.WbWorld.instance.nodes.get(tmp);
                     let firstChild = elem;
-                   // console.log(elem, tmp,)
                     while (elem.parent) {
                         firstChild = elem
                         elem = this.WbWorld.instance.nodes.get(elem.parent);
                     }
                     firstChildId = firstChild.id
-                   // console.log(elem)
                     if (elem.id === id) {
                         this.selectedId = tmp
                         Object.values(this.instances).map((instance, key) => {
@@ -497,60 +240,8 @@ class angelBot_ {
             };
         }
     }
-    resizeGarden = (instanceNumber) => {
-        let self = this.instances[instanceNumber];
-        let clonedId = self.rootNodeId
-        const cloned = this.WbWorld.instance.nodes.get(clonedId);
-        let pose = { 'id': clonedId, "translation": `${self.y / 1000},${self.x / 1000},0.00` };
-        let webotsView = this.webotsView
-        let WbWorld = this.WbWorld
-        webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, cloned)
-        pose = { 'id': clonedId, "scale": `1,1,1` };
-        webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, cloned)
-        let soilInstance = cloned.children[1].children[0] // SOILTRANSFORM
-        // let soilInstanceId = soilInstance.id
-        let stringList = `${self.botWidth / 1000},${self.botLength / 1000}`.replace(/,/g, ' ').split(/\s/).filter(element => element);
-        stringList = stringList.map(element => parseFloat(element));
-        let elem = soilInstance.children[0].geometry
-        elem.size = new WbWorld.instance.viewpoint.WbVector2(stringList[0], stringList[1]);;
-        elem.updateSize()
-       // console.log(`resizing ${elem.id} to ${stringList} for ${self.rootNodeId}`, cloned)
-        if (true || self.bedType === "Concrete") { // why? Oh why the condition
-            // pose = { 'id': soilInstance.id, "translation": `0,0,0.00` };
-            // webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, soilInstance)p
-            pose = { 'id': cloned.children[0].id, "scale": `0,0,0.00` };
-            webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, cloned.children[0].id) // error not detected
-            webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, cloned.children[0])
-        }
-        // don't scale because we have resized
-        // pose = { 'id': soilInstance.id, "scale": `${self.botWidth / 1000},${self.botLength / 1000},1` };
-        // console.log(pose)
-        // webotsView._view.animation._view.x3dScene._applyPoseToObject(pose, soilInstance)
-
-        webotsView._view.animation._view.x3dScene.render(); // seems not to be working
-       // console.log(WbWorld.instance.sceneTree)
-    }
-    createSoil = (/*material,*/ instanceNumber) => {
-        this.addSelector()
-        let self = this.instances[instanceNumber];
-        const webotsView = document.getElementsByTagName('webots-view')[0];
-        this.webotsView = webotsView
-        const WbWorld = webotsView._view.animation._view.x3dScene.WbWorld
-        this.WbWorld = WbWorld
-        let GARDENCONTAINER = this.getRootNode()
-        let useNode = GARDENCONTAINER.children[0]
-        let soilId = useNode.id
-        let clonedId = ``;
-        let cloned = useNode.clone(); // each instance number requires a uniqueId
-        clonedId = cloned.id
-        self.rootNodeId = clonedId
-        cloned.parent = GARDENCONTAINER.id
-        WbWorld.instance.nodes.set(clonedId, cloned)
-        GARDENCONTAINER.children.push(cloned)
-        cloned.finalize();
-        this.resizeGarden(instanceNumber)
-        return
-    }
+    
+    
     applyInstance = (instanceNumber) => {
         let self = this.instances[instanceNumber];
         this.resizeGarden(instanceNumber)
@@ -564,11 +255,6 @@ class angelBot_ {
         this.positionPlants(instanceNumber)
         let tmp = this
         window.self = this
-        // window.moveBot = function (instanceNumber, pos){
-        //     tmp.moveBot(instanceNumber, false,pos)
-        // }
-        // this.moveBot(instanceNumber, false, { x: 1000, y: 5000, z: 500, speed: 2 })
-
     }
     destroyInstance = (instanceNumber) => {
         this.selectedInstance = null
@@ -578,7 +264,6 @@ class angelBot_ {
         object.delete();
         this.webotsView._view.animation._view.x3dScene.render();
         delete this.instances[instanceNumber]
-        // if(Object.keys(this.instances) ===0)this.instances = {}
     }
     deleteAllInstances = () => {
         Object.keys(this.instances).map(instanceNumber => this.destroyInstance(instanceNumber))
@@ -586,21 +271,13 @@ class angelBot_ {
     createGardenSoil = (instanceNumber) => {
         return
     }
-    getDescendantNode = (parentNode, childTree) => {
-        let ret = parentNode;
-        childTree.map(item => ret = ret.children[item])
-        return ret
-    }
-    applyTransformation = (node, transformType, transform) => {
-        if (typeof transform !== 'string') transform = transform.join(",")
-        let pose = { 'id': node.id, [transformType]: transform };
-        this.webotsView._view.x3dScene._applyPoseToObject(pose, node)
-    }
+    
+    
     createLegs = (instanceNumber) => {
         let self = this.instances[instanceNumber];
         if (self.bedType !== "Wooden" || !self.raised) return
         let { webotsView, WbWorld } = this
-        let cloned = this.getSoilTransform(instanceNumber)
+        let cloned = this.getRootNode(instanceNumber)
         let woodenBlock = cloned.children[0].children[0]
         let woodenBlockBL = woodenBlock.clone()
         let woodenBlockBM = woodenBlock.clone()
@@ -649,7 +326,7 @@ class angelBot_ {
         let self = this.instances[instanceNumber];
         if (self.bedType !== "Concrete") return
         let { webotsView, WbWorld } = this
-        let cloned = this.getSoilTransform(instanceNumber)
+        let cloned = this.getRootNode(instanceNumber)
         {
             let template = cloned.children[0].children[0]
             let pose = { 'id': template.id, "scale": `0,0,0` };
@@ -728,7 +405,7 @@ class angelBot_ {
     * 3 for concrete elements
     */
     createTransforms = (instanceNumber) => {
-        let templateParent = this.getSoilTransform(instanceNumber)
+        let templateParent = this.getRootNode(instanceNumber)
         let template = templateParent.children[1]
         let numTransforms = 6
         Array.from(templateParent.children).slice(2).map((elem, index) => {
@@ -757,11 +434,7 @@ class angelBot_ {
             cloned.finalize()
         }
     }
-    getSoilTransform = (instanceNumber) => {
-        let self = this.instances[instanceNumber]
-        let clonedId = self.rootNodeId // this is the parent
-        return this.WbWorld.instance.nodes.get(clonedId);
-    }
+    
     createSoilBed = (instanceNumber) => {
         let self = this.instances[instanceNumber]
         let bedType = self.bedType;
@@ -1035,13 +708,6 @@ class angelBot_ {
         msg.z = Math.round(msg.z)
         let immediate = msg.immediate || false
         this.moveBot(instanceNumber, immediate, msg, 'absolute')
-    }
-
-    showPlants = (points, instanceNumber) => {
-    }
-    hidePlants = (instanceNumber) => {
-    }
-    reallyShowPlants = (instanceNumber) => {
     }
 }
 export const angelBot = new angelBot_();
