@@ -35,17 +35,21 @@ export default class botManager {
         appManager.updateParam("plantHeightLimits", plantHeightLimits)
         appManager.updateParam("speedFactor", 1)
         appManager.updateParam("raisedHeight", 750)
-        appManager.updateParam("raised", true)
+        // appManager.updateParam("orientation", 0)
+        appManager.updateParam("raised", canRaise ? true : false)
         this.canRaise = canRaise
         this.plankThickness = 18
         this.soilDepth = 100
-        this.raised = true
+        // this.raised = true
         this.bedType = ""
         this.legs = {
             width: 100,
             length: 100,
         }
-        this.continuechangeModel()
+        this.location = {
+            x: 0, y: 0, z: 0, speed: 100
+        },
+            this.continuechangeModel()
     }
     copyFromFromModel(appManager, sibling) {
         let farmBot = appManager.bot
@@ -82,9 +86,9 @@ export default class botManager {
         gardenY = appManager.gardenLocation.y
         botWidth = appManager.botSize.width
         botLength = appManager.botSize.length
-        let { botType, botModel } = appManager
+        let { botType, botModel, orientation } = appManager
         let { bedTypes, raised, canRaise, raisedHeight, bedType, plantHeight, plantHeightLimits, controlServers, authenticationServer, authenticationServerUrl, controlServer, controlServerUrl, authenticationServers, controller, email, speedFactor } = farmBot
-        return { gardenX, gardenY, botLength, botWidth, plantHeight, botType, botModel, canRaise, bedType, bedTypes, raised, raisedHeight, authenticationServer, authenticationServerUrl, controlServerUrl, controlServer, plantHeightLimits, controlServers, authenticationServers, controller, email, speedFactor }
+        return { gardenX, gardenY, botLength, botWidth, plantHeight, botType, botModel, canRaise, bedType, bedTypes, raised, raisedHeight, authenticationServer, authenticationServerUrl, controlServerUrl, controlServer, plantHeightLimits, controlServers, authenticationServers, controller, email, speedFactor, orientation }
     }
     updateParamForModel(farmBot, param, val) {
         farmBot[param] = val

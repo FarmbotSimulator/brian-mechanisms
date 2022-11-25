@@ -20,7 +20,7 @@ import construction from "./appManagers/construction";
 import manufacturing from "./appManagers/manufacturing";
 import retail from "./appManagers/retail";
 import surveying from "./appManagers/surveying";
-import {to} from "await-to-js";
+import { to } from "await-to-js";
 const Agriculture = agriculture, // for eval
     Construction = construction,
     Manufacturing = manufacturing,
@@ -166,57 +166,12 @@ class BrianMechanismsSimulator {
                     y, yI,
                     num: num++
                 })
-                // // move it towards zero until it intersects..
-                // // let xDir = x >= 0 ? -1 : 1;
-                // // let yDir = y >= 0 ? -1 : 1;
-                // while (!intersects(tmp)) {
-                //     x -= xDir
-                //     y -= yDir
-                //     startX = x - len / 2
-                //     startY = y + wid / 2
-                //     stopX = startX + len
-                //     stopY = startY - wid
-                // }
-                // if(intersects(tmp)){
-                //    // console.log("asdhkh");
-                //     continue REMOVEINTERSECTION;
-                // }
-                // // if(intersectX)x=startStartX
-                // // else if(intersectY) y = startStartY
-                // console.table({
-                //     hd: "zero",
-                //     startYI: tmp.startYI,
-                //     startY,
-                //     stopY,
-                //     stopYI: tmp.stopYI,
-                //     xInt: intersectX(tmp),
-                //     yInt: intersectY(tmp),
-                //     startXI: tmp.startXI,
-                //     startX,
-                //     stopX,
-                //     stopXI: tmp.stopXI,
-                //     stopX,
-                //     x,
-                //     y
-                // })
             }
         })
-        //                 console.table({
-        //                     xes: Math.abs(xI-x),
-        //                     compareX: widI,
-        //                     yes: Math.abs(yI-y),
-        //                     comparey: lenI,
-        // xInt: intersectX(tmp),
-        // yInt: intersectY(tmp),
-        //                 })
         // move it towards the origin
         this.instances[instanceNumber].x = x
         this.instances[instanceNumber].y = y
-        // }
-        // console.log(this.instances[instanceNumber].x, this.instances[instanceNumber].y)
-        // this.createSoil(instanceNumber)
         this.numInstances++
-        // }, 100)
         this.startEditingInstance(instanceNumber)
         return instanceNumber
     }
@@ -307,21 +262,18 @@ class BrianMechanismsSimulator {
             return
         }
         let [err, care] = await to(self.appManager.getSceneManager());
-        if(err){
-            console.log(err)
-            //return // enable in production
+        if (err) {
+            return // enable in production
         }
         self.appManager.createWorkspace()
+        this.addSelector()
     }
     // does not manage the scene
     preapplyInstance(instanceNumber) {
         instanceNumber = instanceNumber || this.selectedInstance
         if (typeof self.application === 'undefined' || !self.application)
             self.application = self._application
-        console.log("ANOG")
         this.applyInstanceDev(instanceNumber)
-        console.log("RQ qorkspace....")
-
     }
     applyInstance(instanceNumber) {
         let self = this.instances[instanceNumber]
@@ -343,14 +295,11 @@ class BrianMechanismsSimulator {
         // this.moveBot(instanceNumber, true)
         // this.positionPlants(instanceNumber)
     }
-    destroyInstance(instanceNumber) { //check the rest...
-        console.log("destroying ", instanceNumber)
+    destroyInstance(instanceNumber) {
+        instanceNumber = instanceNumber || this.selectedInstance
+        let self = this.instances[instanceNumber]
+        try { self.appManager.destroy(); } catch (error) { }
         this.selectedInstance = undefined
-        // let self = this.instances[instanceNumber];
-        // let rootNodeId = self.rootNodeId
-        // const object = this.WbWorld.instance.nodes.get(rootNodeId);
-        // object.delete();
-        // this.webotsView._view.animation._view.x3dScene.render();
         delete this.instances[instanceNumber]
     }
     deleteAllInstances() {
@@ -361,9 +310,47 @@ class BrianMechanismsSimulator {
         if (typeof instanceNumber === 'undefined') instanceNumber = this.selectedInstance
         let self = this.instances[instanceNumber]
         if (typeof self._application === 'undefined' || !self._application) { // undefined or null
+
             this.destroyInstance(instanceNumber)
+
         }
         if (typeof self.appManager === "undefined") this.destroyInstance(instanceNumber)
+    }
+    addSelector(startedSelector) { // should not be here. will be moved to sceneManager
+        // if (!startedSelector) {
+        const webotsView = document.getElementsByTagName('webots-view')[0];
+        const WbWorld = webotsView._view.x3dScene.WbWorld
+        webotsView.mouseEventsExtra.onmouseup = (event) => {
+            let self = webotsView.mouseEventsExtra
+            let id, firstChildId;
+            if (self._state.moved === false && (!self._state.longClick || self._mobileDevice)) {
+                let tmp = webotsView.mouseEvents.picker.selectedId /// find the parent of this one
+                if (tmp === undefined) {
+                    tmp = "n" + webotsView.mouseEvents.Selector.preciseId
+                }
+                if (typeof tmp === "number") tmp = `n${tmp}`
+                for (let i in this.instances) {
+                    let instance = this.instances[i]
+                    let appManager = instance.appManager
+                    try {
+                        let sceneManager = appManager.sceneManager
+                        let instanceRootNodeId = sceneManager.getThisRootNode().id
+                        let elem = WbWorld.instance.nodes.get(tmp);
+                        let firstChild = elem;
+                        while (elem.parent) {
+                            firstChild = elem
+                            elem = WbWorld.instance.nodes.get(elem.parent);
+                            if (elem.id === instanceRootNodeId) { // instance rootNode is parent of clicked
+                                console.log({i, instanceRootNodeId})
+                                this.selectedInstance = i;
+                            } 
+                        }
+                    } catch (error) {
+                        // console.log(error)
+                    }
+                }
+            } // else this.selectedInstance = null
+        };
     }
 
 }

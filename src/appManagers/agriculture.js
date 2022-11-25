@@ -6,5 +6,3 @@ export default class agriculture extends appManager{
     }
 
 }
-
-// export const Agriculture = new agriculture()

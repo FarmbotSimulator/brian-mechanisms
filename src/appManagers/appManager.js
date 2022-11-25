@@ -10,7 +10,7 @@ const BMCableBot = bMCableBot // for eval
 import brianMechanism from "../botManagers/brianMechanism"
 const BrianMechanism = brianMechanism // for eval
 const botTypes = require("../../store/botTypes.json");
-import {to} from "await-to-js"
+import { to } from "await-to-js"
 export default class appManager {
     constructor() {
         this.parent = null
@@ -24,7 +24,7 @@ export default class appManager {
             width: 0, length: 0
         }
         this.plantHeight = 0
-        
+
     }
     setParent(parent) {
         this.parent = parent
@@ -43,26 +43,29 @@ export default class appManager {
         this.botType = ""
         this.botModel = ""
         this.auth = null
+        this.orientation = 0
     }
     copyFrom(sibling) {
         this.gardenLocation.x = sibling.gardenLocation.x
         this.gardenLocation.y = sibling.gardenLocation.y
-        this.botSize.width = sibling.botSize.width =
-            this.botSize.length = sibling.botSize.length
+        this.botSize.width = sibling.botSize.width
+        this.botSize.length = sibling.botSize.length
         this.workspaceSize.width = sibling.workspaceSize.width
         this.workspaceSize.length = sibling.workspaceSize.length
+        this.orientation = sibling.orientation
         this.botType = sibling.botType
         if (typeof sibling.bot !== 'undefined' && sibling.bot) this.initBot(sibling)
     }
     getSizeParams() {
+        
         if (typeof this.getSizeParamsFromModel !== 'undefined') return this.getSizeParamsFromModel(this, this.bot)
         let gardenX, gardenY, botLength, botWidth
         gardenX = this.gardenLocation.x
         gardenY = this.gardenLocation.y
         botWidth = this.botSize.width
         botLength = this.botSize.length
-        let { botType, botModel/*, plantHeight */ } = this
-        return { gardenX, gardenY, botLength, botWidth,/* plantHeight,*/ botType, botModel }
+        let { botType, botModel/*, plantHeight */, orientation } = this
+        return { gardenX, gardenY, botLength, botWidth,/* plantHeight,*/ botType, botModel, orientation}
     }
     updateParam(param, val) { // only on _appManager
         switch (param) {
@@ -86,6 +89,9 @@ export default class appManager {
                 this.botModel = (this.parent.appManager && this.parent.appManager.botType === this.botType) ? this.parent.appManager.botModel : ""
                 this.initBot()
                 break;
+            case "orientation":
+                this.orientation = val
+                break;
             case "botModel":
                 this.botModel = val
                 this.bot.changeModel()
@@ -105,40 +111,43 @@ export default class appManager {
     }
 
     async getAuth() {
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const auth_ = new auth()
             let [err, care] = await to(auth_.getAuth(this))
             this.auth = care
-            if(err)return reject(err)
+            if (err) return reject(err)
             resolve(care)
         })
     }
     async getController() {
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const controller_ = new controller()
             let [err, care] = await to(controller_.getController(this))
-            if(typeof this.controller !== 'undefined'){
+            if (typeof this.controller !== 'undefined') {
                 this.controller.destroy()
             }
             this.controller = care
-            if(err)return reject(err)
+            if (err) return reject(err)
             resolve(care)
         })
     }
+    destroy(){
+        try{ this.controller.destroy()}catch(error){console.log(error)}
+        try{ this.sceneManager.destroy()}catch(error){console.log(error)}
+    }
 
     async getSceneManager() { // every bot has a scene manager // only run this on apply...
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const sceneManager_ = new sceneManager()
             let [err, care] = await to(sceneManager_.getSceneManager(this))
-            if(err)return reject(err)
+            if (err) return reject(err)
             this.sceneManager = care // already assigned by scene manager
             this.sceneManager.setAppManager(this)
             resolve(care)
         })
     }
-    createWorkspace(){
+    createWorkspace() {
         let sceneManager = this.sceneManager
-        console.log({sceneManager})
         sceneManager.createWorkspace()
     }
 

@@ -24,7 +24,7 @@ export default class wbWorld {
         // const WbWorld = webotsView._view.x3dScene.WbWorld
         // this.WbWorld = WbWorld
     }
-    getDescendantNode = (parentNode, childTree) => {
+    getDescendantNode(parentNode, childTree) {
         let ret = parentNode;
         childTree.map(item => ret = ret.children[item])
         return ret
@@ -48,5 +48,14 @@ export default class wbWorld {
     }
     setAppManager(appManager) {
         this.appManager = appManager
+    }
+    degrees_to_radians(degrees) {
+        let pi = Math.PI;
+        return degrees * (pi / 180);
+    }
+    destroy() {
+        const object = this.getThisRootNode();
+        object.delete();
+        this.webotsView._view.x3dScene.render();
     }
 }

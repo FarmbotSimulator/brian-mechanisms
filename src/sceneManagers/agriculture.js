@@ -10,21 +10,26 @@ export default class agriculture /*extends wbWorld*/ {
         const WbWorld = webotsView._view.animation._view.x3dScene.WbWorld
         this.webotsView = webotsView
         this.WbWorld = WbWorld
+        this.createdWorkspace = false
+        this.movingRequestId = 0
     }
     createWorkspace() {
-        // this.addSelector() // check
-        const { webotsView, WbWorld } = this;
-        let GARDENCONTAINER = this.getRootNode()
-        let useNode = GARDENCONTAINER.children[0]
-        // let soilId = useNode.id
-        let clonedId = ``;
-        let cloned = useNode.clone();
-        clonedId = cloned.id
-        this.rootNodeId = clonedId
-        cloned.parent = GARDENCONTAINER.id
-        WbWorld.instance.nodes.set(clonedId, cloned)
-        GARDENCONTAINER.children.push(cloned)
-        cloned.finalize();
+        if (!this.createdWorkspace) {
+            // this.addSelector() // check
+            const { webotsView, WbWorld } = this;
+            let GARDENCONTAINER = this.getRootNode()
+            let useNode = GARDENCONTAINER.children[0]
+            // let soilId = useNode.id
+            let clonedId = ``;
+            let cloned = useNode.clone();
+            clonedId = cloned.id
+            this.rootNodeId = clonedId
+            cloned.parent = GARDENCONTAINER.id
+            WbWorld.instance.nodes.set(clonedId, cloned)
+            GARDENCONTAINER.children.push(cloned)
+            cloned.finalize();
+        }
+        this.createdWorkspace = true
         this.resizeGarden()
         return
     }
@@ -40,29 +45,32 @@ export default class agriculture /*extends wbWorld*/ {
 
     resizeGarden_(botLength, botWidth) {
         const cloned = this.getThisRootNode()
-        let appManager = this.appManager
+        let { appManager } = this
+        let { orientation } = appManager
         this.applyTransformation(cloned, "translation", [appManager.gardenLocation.y / 1000, appManager.gardenLocation.x / 1000, 0])
         this.applyTransformation(cloned, "scale", [1, 1, 1])
+        this.applyTransformation(cloned, "rotation", [0, 0, 1, this.degrees_to_radians(orientation)])
+        console.log({ orientation, cloned })
         let soilInstance = this.getSoilTransform() // SOILTRANSFORM
         let stringList = `${botWidth / 1000},${botLength / 1000}`.replace(/,/g, ' ').split(/\s/).filter(element => element);
         stringList = stringList.map(element => parseFloat(element));
         let elem = soilInstance.children[0].geometry
         elem.size = new this.WbWorld.instance.viewpoint.WbVector2(stringList[0], stringList[1]);;
         elem.updateSize()
+        this.webotsView._view.animation._view.x3dScene.render();
     }
     createSoilBed_() {
         let { appManager } = this
         let { bot } = appManager
-        let { bedType, raised, raisedHeight, plankThickness, soilDepth } = bot,
+        let { bedTypes, bedType, raised, raisedHeight, plankThickness, soilDepth } = bot,
             width = appManager.botSize.width,
             length = appManager.botSize.length,
             botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
+        if(typeof bedType === undefined || bedType === '')bedTypes = bedTypes[0]
         const { webotsView, WbWorld } = this
-        // let clonedId = this.getThisRootNode() // this is the parent
         const cloned = this.getThisRootNode()
-        let soilInstance = this.getSoilTransform()//cloned.children[1].children[0] // SOILTRANSFORM
-        // let soilInstanceId = soilInstance.id
+        let soilInstance = this.getSoilTransform() // SOILTRANSFORM
         // delete all wooden elements, retain soil and plants
         {
             Array.from(cloned.children[1].children.slice(2)).map((elem, index) => {
@@ -212,15 +220,16 @@ export default class agriculture /*extends wbWorld*/ {
     */
     createTransforms_() {
         let templateParent = this.getThisRootNode()
-        console.log({ templateParent })
         let template = templateParent.children[1]
-        console.log({ template })
         let numTransforms = 6
+        console.log("inside transforms")
+        console.log({ templateParent })
         Array.from(templateParent.children).slice(2).map((elem, index) => {
             const object = this.WbWorld.instance.nodes.get(elem.id);
             try {
+                console.log({ object })
                 object.delete();
-            } catch (error) { }
+            } catch (error) { console.log(error) }
         })
         templateParent.children = templateParent.children.filter((elem, i) => parseInt(i) < 2)
         while (Array.from(templateParent.children).length < numTransforms) {
