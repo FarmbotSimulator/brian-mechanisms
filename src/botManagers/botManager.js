@@ -48,8 +48,8 @@ export default class botManager {
         }
         this.location = {
             x: 0, y: 0, z: 0, speed: 100
-        },
-            this.continuechangeModel()
+        }
+        this.continuechangeModel()
     }
     copyFromFromModel(appManager, sibling) {
         let farmBot = appManager.bot
@@ -78,6 +78,7 @@ export default class botManager {
         farmBot.controller = siblingBot.controller
         farmBot.email = siblingBot.email
         farmBot.speedFactor = siblingBot.speedFactor
+        farmBot.location = siblingBot.location
         this.continueCopyFromFromModel(appManager, sibling)
     }
     _getSizeParamsFromModel(appManager, farmBot) {

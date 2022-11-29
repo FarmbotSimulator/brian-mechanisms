@@ -1,6 +1,6 @@
 import agriculture from "./agriculture"
 
-export default class farmBotAgriculture extends agriculture {
+export default class farmBotModAgriculture extends agriculture {
     constructor() {
         super()
     }
@@ -14,31 +14,33 @@ export default class farmBotAgriculture extends agriculture {
         // calculate length & width
         const cloned = this.getThisRootNode()
         const appManager = super.appManager || this.appManager
-        let { bedType } = appManager.bot
+        let { bedType, numGantries, zAxesperGantry } = appManager.bot
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
-        this.resizeGarden_(botLength, botWidth)
+        this.resizeGarden_(botLength * zAxesperGantry, botWidth * numGantries)
         if (true || bedType === "Concrete") { // why? Oh why the condition
             this.applyTransformation(cloned.children[0], "scale", [0, 0, 0])
         }
-        this.createSoilBed_();
-        this.createTransforms_()
-        this.createLegs_()
-        this.createConcrete_()
+        this.createSoilBed_(zAxesperGantry, numGantries);
+        this.createTransforms_(zAxesperGantry, numGantries)
+        this.createLegs_(zAxesperGantry, numGantries)
+        this.createConcrete_(zAxesperGantry, numGantries)
         this.placeRobotZLocation()
         this.resizeRobot()
+        this.cloneGantries()
         this.moveBot(true)
         //     this.positionPlants(instanceNumber)
     }
     resizeRobot() {
         let { appManager } = this
         let { bot } = appManager
-        let { bedType, raised, raisedHeight, plankThickness, soilDepth, plantHeight } = bot,
-            width = appManager.botSize.width,
-            length = appManager.botSize.length,
-            botWidth = appManager.botSize.width,
-            botLength = appManager.botSize.length
-        let { rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis } = this.getRobotParts()
+        let { bedType, raised, raisedHeight, plankThickness, soilDepth, plantHeight, zAxesperGantry, numGantries } = bot,
+            width = appManager.botSize.width * parseInt(zAxesperGantry),
+            length = appManager.botSize.length * parseInt(numGantries),
+            botWidth = appManager.botSize.width * parseInt(zAxesperGantry),
+            botLength = appManager.botSize.length * parseInt(numGantries)
+        console.log({ numGantries, zAxesperGantry })
+        let { rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis, CrossSlideNCoParent } = this.getRobotParts(0)
         {
             this.applyTransformation(gantryBeam, "scale", [1, 1, (botWidth * 4.65) / 3000])
             this.applyTransformation(gantryBeam, "translation", [botWidth / (2 * 1000), gantryBeam.translation.y, /*gantryBeam.translation.z*/0.8 + (plantHeight - 500) / 1000])
@@ -53,23 +55,54 @@ export default class farmBotAgriculture extends agriculture {
             this.applyTransformation(leftGantryColumn.children[0], "scale", [1, 1, (650 + plantHeight - 500) / 650]) /// len = 650 mm
             this.applyTransformation(leftGantryColumn.children[12], "translation", [-0.011, 0.001, 0.06 + (plantHeight - 500) / 1000])
         }
-
-        this.applyTransformation(CrossSlideNCo, "translation", [0, 0, -botWidth / (2 * 1000)]) // take it to origin
+        
         {
             let zAxisLen = 500 + plantHeight
             this.applyTransformation(zAxis, "scale", [1, 1, zAxisLen / 750]) // length is 75cm, but it ought to have been 1 m
         }
+        this.applyTransformation(CrossSlideNCo, "translation", [0, 0, -botWidth * numGantries/ (2 * 1000)]) // take it to origin
+        {
+            let { zAxesperGantry } = bot
+            // let { CrossSlideNCoParent } = this.getRobotParts(0)
+            for (let i = 1; i < zAxesperGantry; i++) { //clone crossSlieNCos
+                let zAxisClone = CrossSlideNCo.clone()
+                zAxisClone.parent = CrossSlideNCoParent.id
+                this.WbWorld.instance.nodes.set(zAxisClone.id, zAxisClone)
+                CrossSlideNCoParent.children.push(zAxisClone)
+                zAxisClone.finalize()
+                // position it
+                console.log({zAxisClone})
+                this.applyTransformation(zAxisClone, "translation", [0, 0, ((-botWidth * numGantries / 2) + (i * (botWidth / numGantries))) / (1000)]) // take it to origin
+            }
+            console.log({CrossSlideNCoParent}) // check children and postion
+        }
         this.webotsView._view.x3dScene.render();
     }
-    getRobotParts() {
+    cloneGantries() {
+        let { appManager } = this
+        let { bot } = appManager
+        let { numGantries } = bot
+        let { getRobotSNode, robotNodeZeroTransform } = this.getRobotParts(0)
+        for (let i = 1; i < numGantries; i++) {
+            let gantry = robotNodeZeroTransform.clone()
+            gantry.parent = getRobotSNode.id
+            this.WbWorld.instance.nodes.set(gantry.id, gantry)
+            getRobotSNode.children.push(gantry)
+            gantry.finalize()
+        }
+        this.webotsView._view.x3dScene.render();
+    }
+    getRobotParts(root = 0) {
         let getRobotSNode = this.getRobotSNode();
-        let rightGantryColumn = this.getDescendantNode(getRobotSNode, [0, 0])
-        let leftGantryColumn = this.getDescendantNode(getRobotSNode, [0, 1])
-        let gantryBeam = this.getDescendantNode(getRobotSNode, [0, 2, 0])
-        let CrossSlideNCo = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0])
-        let zAxisNUTM = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0, 1])
-        let zAxis = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0, 1, 0])
-        return { getRobotSNode, rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis }
+        let rightGantryColumn = this.getDescendantNode(getRobotSNode, [root, 0])
+        let leftGantryColumn = this.getDescendantNode(getRobotSNode, [root, 1])
+        let gantryBeam = this.getDescendantNode(getRobotSNode, [root, 2, 0])
+        let CrossSlideNCo = this.getDescendantNode(getRobotSNode, [root, 2, 1, 0])
+        let CrossSlideNCoParent = this.getDescendantNode(getRobotSNode, [root, 2, 1])
+        let zAxisNUTM = this.getDescendantNode(getRobotSNode, [root, 2, 1, 0, 1])
+        let zAxis = this.getDescendantNode(getRobotSNode, [root, 2, 1, 0, 1, 0])
+        let robotNodeZeroTransform = this.getDescendantNode(getRobotSNode, [root])
+        return { getRobotSNode, rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis, robotNodeZeroTransform, CrossSlideNCoParent }
     }
     placeRobotZLocation() { // gantry
         let getRobotSNode = this.getRobotSNode()
@@ -81,18 +114,20 @@ export default class farmBotAgriculture extends agriculture {
             z = 0.05
         }
         else z = 0.02
-        console.log({"abc":"abc", getRobotSNode})
+        console.log({ bedType, z, getRobotSNode })
         this.applyTransformation(getRobotSNode, "translation", [0, 0, z])
+        this.webotsView._view.x3dScene.render();
     }
 
-    moveBot(immediate = false, location, motionType = 'dontcare') {
+    moveBot(immediate = false, location, motionType = 'dontcare') { // move all gantries and their children... 
         let { appManager } = this
         let { bot } = appManager
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
-        let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM } = this.getRobotParts()
+        let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM } = this.getRobotParts(0) // check
         location = location || {}
         let { x, y, z, speed } = location // in meters
+        console.log({ bot })
         x = typeof x === 'number' ? x : bot.location.x
         y = typeof y === 'number' ? y : bot.location.y
         z = typeof z === 'number' ? z : bot.location.z
@@ -119,9 +154,12 @@ export default class farmBotAgriculture extends agriculture {
         // console.log({ premits, limits, x, y, z })
 
         if (immediate) {
-            this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x / 1000])
-            this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y / 1000, getRobotSNode.translation.z])
-            this.applyTransformation(zAxisNUTM, "translation", [-z / 1000, 0, 0])
+            // this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x / 1000])
+            // this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y / 1000, getRobotSNode.translation.z])
+            // this.applyTransformation(zAxisNUTM, "translation", [-z / 1000, 0, 0])
+            this.applyCrossSlideTransform(x)
+            this.applyGantryTransform(y);
+            this.applyZAxisTransform(z);
             bot.location.x = x
             bot.location.y = y
             bot.location.z = z
@@ -189,9 +227,9 @@ export default class farmBotAgriculture extends agriculture {
                     this.movingRequestId++ // to clear interval
                 }
                 // console.log({ x1, y1, z1, x, y, z })
-                this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x1 / 1000])
-                this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y1 / 1000, getRobotSNode.translation.z])
-                this.applyTransformation(zAxisNUTM, "translation", [-z1 / 1000, 0, 0])
+                this.applyCrossSlideTransform(x1)
+                this.applyGantryTransform(y1);
+                this.applyZAxisTransform(z1);
                 bot.location.x = x1
                 bot.location.y = y1
                 bot.location.z = z1
@@ -205,8 +243,42 @@ export default class farmBotAgriculture extends agriculture {
 
             }, timeStep * 1000)
             // send back location log every 5 seconds
-
         }
 
+    }
+    applyZAxisTransform(z1) {
+        let { appManager } = this
+        let { bot } = appManager
+        let botWidth = appManager.botSize.width,
+            botLength = appManager.botSize.length
+        let { bedType, numGantries, zAxesperGantry } = bot
+        for (let i = 0; i < numGantries; i++) {
+            let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM } = this.getRobotParts(i)
+            this.applyTransformation(zAxisNUTM, "translation", [-z1 / 1000, 0, 0])
+        }
+    }
+    applyGantryTransform(y1) {
+        let { appManager } = this
+        let { bot } = appManager
+        let botWidth = appManager.botSize.width,
+            botLength = appManager.botSize.length
+        let { bedType, numGantries, zAxesperGantry } = bot
+        for (let i = 0; i < numGantries; i++) {
+            let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM, robotNodeZeroTransform } = this.getRobotParts(i)
+            this.applyTransformation(robotNodeZeroTransform, "translation", [0, ((-botLength * numGantries / 2) + y1 + (i * (botLength))) / 1000, getRobotSNode.translation.z])
+        }
+    }
+
+    applyCrossSlideTransform(x1) {
+        let { appManager } = this
+        let { bot } = appManager
+        let botWidth = appManager.botSize.width,
+            botLength = appManager.botSize.length
+        let { bedType, numGantries, zAxesperGantry } = bot
+        for (let i = 0; i < zAxesperGantry; i++) {
+            let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM } = this.getRobotParts(i)// I see where the problem is
+            console.log({CrossSlideNCo})
+            this.applyTransformation(CrossSlideNCo, "translation", [0, 0, ((-botWidth * zAxesperGantry / 2) + x1 + (i * (botWidth))) / 1000])
+        }
     }
 }

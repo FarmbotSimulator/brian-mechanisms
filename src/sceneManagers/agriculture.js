@@ -59,15 +59,15 @@ export default class agriculture /*extends wbWorld*/ {
         elem.updateSize()
         this.webotsView._view.animation._view.x3dScene.render();
     }
-    createSoilBed_() {
+    createSoilBed_(widthMux = 1, lenMux = 1) {
         let { appManager } = this
         let { bot } = appManager
         let { bedTypes, bedType, raised, raisedHeight, plankThickness, soilDepth } = bot,
-            width = appManager.botSize.width,
-            length = appManager.botSize.length,
-            botWidth = appManager.botSize.width,
-            botLength = appManager.botSize.length
-        if(typeof bedType === undefined || bedType === '')bedTypes = bedTypes[0]
+            width = appManager.botSize.width * widthMux,
+            length = appManager.botSize.length * lenMux,
+            botWidth = appManager.botSize.width * widthMux,
+            botLength = appManager.botSize.length * lenMux
+        if (typeof bedType === undefined || bedType === '') bedTypes = bedTypes[0]
         const { webotsView, WbWorld } = this
         const cloned = this.getThisRootNode()
         let soilInstance = this.getSoilTransform() // SOILTRANSFORM
@@ -250,14 +250,14 @@ export default class agriculture /*extends wbWorld*/ {
             cloned.finalize()
         }
     }
-    createLegs_() {
+    createLegs_(widthMux = 1, lenMux = 1) {
         let { appManager } = this
         let { bot } = appManager
         let { bedType, raised, raisedHeight, plankThickness, legs } = bot,
-            width = appManager.botSize.width,
-            length = appManager.botSize.length,
-            botWidth = appManager.botSize.width,
-            botLength = appManager.botSize.length
+            width = appManager.botSize.width * widthMux,
+            length = appManager.botSize.length * lenMux,
+            botWidth = appManager.botSize.width * widthMux,
+            botLength = appManager.botSize.length * lenMux
         console.log({ appManager, bot, legs })
         if (bedType !== "Wooden" || !raised) return
         let { webotsView, WbWorld } = this
@@ -303,14 +303,14 @@ export default class agriculture /*extends wbWorld*/ {
         // webotsView._view.animation._view.x3dScene.render();
     }
 
-    createConcrete_() {
+    createConcrete_(widthMux = 1, lenMux = 1) {
         let { appManager } = this
         let { bot } = appManager
         let { bedType, raised, raisedHeight, plankThickness, legs } = bot,
-            width = appManager.botSize.width,
-            length = appManager.botSize.length,
-            botWidth = appManager.botSize.width,
-            botLength = appManager.botSize.length
+            width = appManager.botSize.width * widthMux,
+            length = appManager.botSize.length * lenMux, 
+            botWidth = appManager.botSize.width * widthMux,
+            botLength = appManager.botSize.length * lenMux
         if (bedType !== "Concrete") return
         let { webotsView, WbWorld } = this
         let cloned = this.getThisRootNode()
