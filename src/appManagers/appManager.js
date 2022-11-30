@@ -127,6 +127,7 @@ export default class appManager {
                 this.controller.destroy()
             }
             this.controller = care
+            // this.sceneManager.setAppManager(this)
             if (err) return reject(err)
             resolve(care)
         })

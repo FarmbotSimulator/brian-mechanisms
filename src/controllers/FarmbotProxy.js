@@ -16,7 +16,6 @@ import mqtt from 'mqtt'
 
 export default class FarmbotProxy {
     constructor() {
-        console.log("starting proxy...")
         this.askForPlantInterval = null
     }
     /**
@@ -24,11 +23,11 @@ export default class FarmbotProxy {
      *
      * @returns {Promise} A promise that is resolved with mqtt instance if connection is successful or rejected with the error
      */
-     async connect(password) {
+    async connect(password) {
         let broker = this.controlServerUrl
-        let {email} = this.parent.bot
+        let { email } = this.parent.bot
         let userName = email
-        console.log({email, broker})
+        console.log({ email, broker })
         return new Promise((resolve, reject) => {
             const client = mqtt.connect(broker, {
                 clean: true,
@@ -53,6 +52,8 @@ export default class FarmbotProxy {
                 resolve(client)
             })
             client.on("message", (wholeTopic, message) => {
+                let { appManager } = this
+                let { sceneManager } = appManager
                 if (wholeTopic === userName) {
                     client.unsubscribe(userName);
                     this.botId = message.toString()
@@ -70,18 +71,18 @@ export default class FarmbotProxy {
                         let setWhat = wholeTopic.split("/")[3];
                         switch (setWhat) {
                             case "points":
-                                this.parent.processPoints(JSON.parse(msg), instanceNumber) // check
+                                sceneManager.processPoints(JSON.parse(msg)) // check
                                 break;
                         }
                         break;
                     case "move_relative":
-                        this.parent.moveRelative(JSON.parse(msg), instanceNumber)  // check
+                        sceneManager.moveRelative(JSON.parse(msg))  // check
                         break;
                     case "move_absolute":
-                        this.parent.moveAbsolute(JSON.parse(msg), instanceNumber)  // check
+                        sceneManager.moveAbsolute(JSON.parse(msg))  // check
                         break;
                     case "emergency_lock":
-                        this.parent.emergencyStop(instanceNumber)
+                        sceneManager.emergencyStop()
                         break;
                 }
             })
@@ -91,12 +92,13 @@ export default class FarmbotProxy {
         let topic = `/${this.botId}/CURRENTLOCATION`
         this.client.publish(topic, JSON.stringify({}))
     }
-    updateLocation() { // check... We may  
-        let self = this.parent.instances[this.instanceNumber] // where to we save the x,y,z?
+    updateLocation() {
+        let { appManager } = this
+        let { bot } = appManager
         let logData = {
-            "x": Math.round(self.location.x),
-            "y": Math.round(self.location.y),
-            "z": Math.round(self.location.z)
+            "x": Math.round(bot.location.x),
+            "y": Math.round(bot.location.y),
+            "z": Math.round(bot.location.z)
         }
         this.publishGeneralData(logData, 'logs')
     }
@@ -114,6 +116,18 @@ export default class FarmbotProxy {
         this.client.publish(`/${this.botId}/GET`, "points") // work out this one
     }
 
+    publishLogs() {
+        let { appManager } = this
+        let { bot } = appManager
+        let logData = {
+            // other params handled by farmbotProxy
+            "x": Math.round(bot.location.x),
+            "y": Math.round(bot.location.y),
+            "z": Math.round(bot.location.z)
+        }
+        this.publishGeneralData(logData, 'logs')
+    }
+
     // sendLocationData(location) {
 
     // }
@@ -125,5 +139,5 @@ export default class FarmbotProxy {
             this.client.end()
         } catch (error) { }
     }
-    
+
 }

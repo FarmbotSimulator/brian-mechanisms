@@ -275,14 +275,16 @@ class BrianMechanismsSimulator {
             self.application = self._application
         this.applyInstanceDev(instanceNumber)
     }
-    applyInstance(instanceNumber) {
+    async applyInstance(instanceNumber) {
+        instanceNumber = instanceNumber || this.selectedInstance
         let self = this.instances[instanceNumber]
+        console.log(self)
         if (typeof self._application === 'undefined' || !self._application) { // undefined or null
             this.destroyInstance(instanceNumber)
             return
         }
         self.appManager = this.initAppManager(self, false)
-        this.applyInstanceDev(instanceNumber)
+        await this.applyInstanceDev(instanceNumber)
 
         // let self = this.instances[instanceNumber];
         // this.resizeGarden(instanceNumber)

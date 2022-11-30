@@ -67,12 +67,13 @@ export default class farmBotAgriculture extends agriculture {
         let leftGantryColumn = this.getDescendantNode(getRobotSNode, [0, 1])
         let gantryBeam = this.getDescendantNode(getRobotSNode, [0, 2, 0])
         let CrossSlideNCo = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0])
+        let CrossSlideNCoParent = this.getDescendantNode(getRobotSNode, [0, 2, 1])
         let zAxisNUTM = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0, 1])
         let zAxis = this.getDescendantNode(getRobotSNode, [0, 2, 1, 0, 1, 0])
         return { getRobotSNode, rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis }
     }
     placeRobotZLocation() { // gantry
-        let getRobotSNode = this.getRobotSNode()
+        let {getRobotSNode,CrossSlideNCoParent} = this.getRobotParts()//this.getRobotSNode()
         let { appManager } = this
         let { bot, orientation } = appManager
         let { bedType } = bot
@@ -81,13 +82,12 @@ export default class farmBotAgriculture extends agriculture {
             z = 0.05
         }
         else z = 0.02
-        console.log({"abc":"abc", getRobotSNode})
         this.applyTransformation(getRobotSNode, "translation", [0, 0, z])
     }
 
     moveBot(immediate = false, location, motionType = 'dontcare') {
         let { appManager } = this
-        let { bot } = appManager
+        let { bot, controller } = appManager
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
         let { zAxis, getRobotSNode, CrossSlideNCo, zAxisNUTM } = this.getRobotParts()
@@ -116,7 +116,6 @@ export default class farmBotAgriculture extends agriculture {
         else if (y > limits["y"][1]) y = limits["y"][1]
         if (z < limits["z"][0]) z = limits["z"][0]
         else if (z > limits["z"][1]) z = limits["z"][1]
-        // console.log({ premits, limits, x, y, z })
 
         if (immediate) {
             this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x / 1000])
@@ -151,16 +150,13 @@ export default class farmBotAgriculture extends agriculture {
             let speedX = ((diffs.x / displacement) /** directionX*/) * speed  // mm/s
             let speedY = ((diffs.y / displacement) /** directionY*/) * speed
             let speedZ = ((diffs.z / displacement) /** directionZ*/) * speed
-            // console.log({
-            //     displacement, diffs, speedo: { speedX, speedY, speedZ }, loco: { x, y, z }, currentX, currentY, currentZ
-            // })
             let timeStep = 1 / 10 // in secs n frames per sec
             let loggedTime = 0
             let logInterval = 0.5    // every 5 seconds
             let movingInterval = setInterval(() => {
                 if (this.movingRequestId != movingRequestId) {
                     clearInterval(movingInterval)
-                    this.publishLogs({ x, y, z }, motionType === 'relative', instanceNumber)
+                    controller.publishLogs({ x, y, z }, motionType === 'relative') // take from controllers
                     return
                 }
                 currentX = CrossSlideNCo.translation.z - (-botWidth / 2000) // in meters
@@ -182,13 +178,11 @@ export default class farmBotAgriculture extends agriculture {
                 if (directionZ === -1 && z1 < z) isLastStep = true
                 else if (directionZ === 1 && z1 > z) isLastStep = true
                 if (isLastStep) {
-                    // console.log({ diffs, speedX, speedY, speedZ, currentX, currentY, currentZ, x1, y1, z1, x, y, z, directionX, directionY, directionZ })
                     x1 = x
                     y1 = y
                     z1 = z
                     this.movingRequestId++ // to clear interval
                 }
-                // console.log({ x1, y1, z1, x, y, z })
                 this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x1 / 1000])
                 this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y1 / 1000, getRobotSNode.translation.z])
                 this.applyTransformation(zAxisNUTM, "translation", [-z1 / 1000, 0, 0])
@@ -199,7 +193,7 @@ export default class farmBotAgriculture extends agriculture {
                 this.webotsView._view.x3dScene.render();
                 // every two seconds and at the end
                 if (isLastStep || loggedTime >= logInterval) {
-                    this.publishLogs({ x, y, z }, motionType === 'relative', instanceNumber)
+                    controller.publishLogs({ x, y, z }, motionType === 'relative')
                     loggedTime = 0
                 } else loggedTime += timeStep
 

@@ -50,7 +50,6 @@ export default class agriculture /*extends wbWorld*/ {
         this.applyTransformation(cloned, "translation", [appManager.gardenLocation.y / 1000, appManager.gardenLocation.x / 1000, 0])
         this.applyTransformation(cloned, "scale", [1, 1, 1])
         this.applyTransformation(cloned, "rotation", [0, 0, 1, this.degrees_to_radians(orientation)])
-        console.log({ orientation, cloned })
         let soilInstance = this.getSoilTransform() // SOILTRANSFORM
         let stringList = `${botWidth / 1000},${botLength / 1000}`.replace(/,/g, ' ').split(/\s/).filter(element => element);
         stringList = stringList.map(element => parseFloat(element));
@@ -212,7 +211,6 @@ export default class agriculture /*extends wbWorld*/ {
                 this.applyTransformation(soilInstance, "translation", [0, 0, 0.0001])
                 break;
         }
-        console.log({ "1": "soildBed", "rootNode": this.getThisRootNode(), "soilNode": this.getSoilTransform() })
     }
     /*
     * 2 for legs
@@ -222,12 +220,9 @@ export default class agriculture /*extends wbWorld*/ {
         let templateParent = this.getThisRootNode()
         let template = templateParent.children[1]
         let numTransforms = 6
-        console.log("inside transforms")
-        console.log({ templateParent })
         Array.from(templateParent.children).slice(2).map((elem, index) => {
             const object = this.WbWorld.instance.nodes.get(elem.id);
             try {
-                console.log({ object })
                 object.delete();
             } catch (error) { console.log(error) }
         })
@@ -258,7 +253,6 @@ export default class agriculture /*extends wbWorld*/ {
             length = appManager.botSize.length * lenMux,
             botWidth = appManager.botSize.width * widthMux,
             botLength = appManager.botSize.length * lenMux
-        console.log({ appManager, bot, legs })
         if (bedType !== "Wooden" || !raised) return
         let { webotsView, WbWorld } = this
         let cloned = this.getThisRootNode()
@@ -299,8 +293,6 @@ export default class agriculture /*extends wbWorld*/ {
         {
             this.applyTransformation(cloned.children[2], "translation", [0, 0, raisedHeightHalf])
         }
-        console.log({ "rootNode": this.getThisRootNode(), "soilNode": this.getSoilTransform() })
-        // webotsView._view.animation._view.x3dScene.render();
     }
 
     createConcrete_(widthMux = 1, lenMux = 1) {
@@ -308,7 +300,7 @@ export default class agriculture /*extends wbWorld*/ {
         let { bot } = appManager
         let { bedType, raised, raisedHeight, plankThickness, legs } = bot,
             width = appManager.botSize.width * widthMux,
-            length = appManager.botSize.length * lenMux, 
+            length = appManager.botSize.length * lenMux,
             botWidth = appManager.botSize.width * widthMux,
             botLength = appManager.botSize.length * lenMux
         if (bedType !== "Concrete") return
@@ -344,7 +336,6 @@ export default class agriculture /*extends wbWorld*/ {
                     WbWorld.instance.nodes.set(elem_.id, elem_)
                     cloned.children[3].children.push(elem_)
                     elem_.finalize()
-                    // console.log("DRAGCHAIN:", elem_)
                     location = [js[j] + 0.008, y, 0.251];
                     this.applyTransformation(elem_, "translation", location)
                 } else {
@@ -377,5 +368,68 @@ export default class agriculture /*extends wbWorld*/ {
             this.applyTransformation(cloned.children[3], "translation", [0, 0, -0.05])
         }
         // webotsView._view.animation._view.x3dScene.render();
+    }
+    moveRelative(msg) {
+        let { appManager } = this
+        let { bot } = appManager
+        try {
+            msg = JSON.parse(msg)
+        } catch (error) {
+
+        }
+        try {
+            msg.z *= -1
+            msg.x += bot.location.x
+            msg.y += bot.location.y
+            msg.z += bot.location.z
+            msg.x = Math.round(msg.x)
+            msg.y = Math.round(msg.y)
+            msg.z = Math.round(msg.z)
+        } catch (error) { }
+        this.moveBot(false, msg, 'relative')
+    }
+    emergencyStop() {
+        this.movingRequestId++
+    }
+
+    moveAbsolute(msg) {
+        try {
+            msg = JSON.parse(msg)
+        } catch (error) {
+
+        }
+        try {
+        } catch (error) { }
+        msg.x = Math.round(msg.x)
+        msg.y = Math.round(msg.y)
+        msg.z = Math.round(msg.z)
+        let immediate = msg.immediate || false
+        this.moveBot(immediate, msg, 'absolute')
+    }
+    processPoints(plantPoints) {
+        let { appManager } = this
+        let { bot } = appManager,
+            width = appManager.botSize.width,
+            length = appManager.botSize.length,
+            botWidth = appManager.botSize.width,
+            botLength = appManager.botSize.length
+        if (this.plants === undefined) {
+            this.plants = {}
+        }
+        for (let i in this.plants) {
+            this.plants[i]["deleted"] = true
+        }
+        plantPoints.map(item => {
+            this.plants[item.id] = this.plants[item.id] || {}
+            this.plants[item.id]["plantData"] = item
+            this.plants[item.id]["deleted"] = false
+        })
+        let options = {
+            botWidth: botWidth,
+            botLength: botLength,
+            date: new Date().toISOString(), // check. Needs to be read from somewhere
+        }
+        // planter.place(this, options, instanceNumber) // different for different bots
+        // this.positionPlants(instanceNumber)
     }
 }

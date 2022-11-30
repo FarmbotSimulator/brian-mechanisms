@@ -28,6 +28,7 @@ export default class controller {
             }
             controller_.controlServerUrl = controlServerUrl
             controller_.parent = appManager
+            controller_.appManager = appManager
             resolve(controller_)
         })
     }
