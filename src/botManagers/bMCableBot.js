@@ -23,5 +23,4 @@ export default class bMCableBot extends botManager {
         let siblingBot = sibling.bot
         farmBot.numCableSets = siblingBot.numCableSets
     }
-
 }

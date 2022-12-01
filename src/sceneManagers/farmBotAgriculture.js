@@ -8,7 +8,21 @@ export default class farmBotAgriculture extends agriculture {
     // is different for every bot
     getRobotSNode() {
         let rootNode = this.WbWorld.instance.nodes.get(this.rootNodeId)
-        return rootNode.children[1].children[1].children[1]
+        this.deleteExcessModels(1)
+        // if (typeof this.deletedStrangers === undefined) {
+        //     this.deletedStrangers = true
+        //     // remove elements 2 & 3
+        //     {
+        //         Array.from(rootNode.children[1].children[1].children).map((elem, index) => {
+        //             if (parseInt(elem) === 2 || parseInt(elem) === 3) {
+        //                 const object = this.WbWorld.instance.nodes.get(elem.id);
+        //                 object.delete();
+        //             }
+        //         })
+        //         // rootNode.children[1].children[1].children = rootNode.children[1].children[1].children.filter((elem, i) => parseInt(i) != 2 && parseInt(i) != 3)
+        //     }
+        // }
+        return rootNode.children[1].children[1].children[1] // the last one is optional..
     }
     resizeGarden() {
         // calculate length & width
@@ -73,7 +87,7 @@ export default class farmBotAgriculture extends agriculture {
         return { getRobotSNode, rightGantryColumn, leftGantryColumn, gantryBeam, CrossSlideNCo, zAxisNUTM, zAxis }
     }
     placeRobotZLocation() { // gantry
-        let {getRobotSNode,CrossSlideNCoParent} = this.getRobotParts()//this.getRobotSNode()
+        let { getRobotSNode, CrossSlideNCoParent } = this.getRobotParts()//this.getRobotSNode()
         let { appManager } = this
         let { bot, orientation } = appManager
         let { bedType } = bot

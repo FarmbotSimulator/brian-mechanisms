@@ -330,6 +330,7 @@ class BrianMechanismsSimulator {
                 if (tmp === undefined) {
                     tmp = "n" + webotsView.mouseEvents.Selector.preciseId
                 }
+                console.log({"clicked": tmp})
                 if (typeof tmp === "number") tmp = `n${tmp}`
                 for (let i in this.instances) {
                     let instance = this.instances[i]

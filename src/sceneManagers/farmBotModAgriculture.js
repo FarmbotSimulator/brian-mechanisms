@@ -7,6 +7,7 @@ export default class farmBotModAgriculture extends agriculture {
     // return the transform that has the robot
     // is different for every bot
     getRobotSNode() {
+        this.deleteExcessModels(1)
         let rootNode = this.WbWorld.instance.nodes.get(this.rootNodeId)
         return rootNode.children[1].children[1].children[1]
     }

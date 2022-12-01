@@ -2,6 +2,8 @@ import farmBotAgriculture from "./farmBotAgriculture"
 const FarmBotAgriculture = farmBotAgriculture // for eval
 import farmBotModAgriculture from "./farmBotModAgriculture"
 const FarmBotModAgriculture = farmBotModAgriculture // for eval
+import bMCableBotAgriculture from "./bMCableBotAgriculture"
+const BMCableBotAgriculture = bMCableBotAgriculture // for eval
 
 export default class sceneManager {
     async getSceneManager(appManager) {

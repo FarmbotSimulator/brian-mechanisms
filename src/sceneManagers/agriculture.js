@@ -17,7 +17,7 @@ export default class agriculture /*extends wbWorld*/ {
         if (!this.createdWorkspace) {
             // this.addSelector() // check
             const { webotsView, WbWorld } = this;
-            let GARDENCONTAINER = this.getRootNode()
+            let GARDENCONTAINER = this.getRootNode() // firstTransform from the bottom
             let useNode = GARDENCONTAINER.children[0]
             // let soilId = useNode.id
             let clonedId = ``;
@@ -28,6 +28,7 @@ export default class agriculture /*extends wbWorld*/ {
             WbWorld.instance.nodes.set(clonedId, cloned)
             GARDENCONTAINER.children.push(cloned)
             cloned.finalize();
+            // delete the other children
         }
         this.createdWorkspace = true
         this.resizeGarden()
@@ -50,6 +51,7 @@ export default class agriculture /*extends wbWorld*/ {
         this.applyTransformation(cloned, "translation", [appManager.gardenLocation.y / 1000, appManager.gardenLocation.x / 1000, 0])
         this.applyTransformation(cloned, "scale", [1, 1, 1])
         this.applyTransformation(cloned, "rotation", [0, 0, 1, this.degrees_to_radians(orientation)])
+        console.log({cloned})
         let soilInstance = this.getSoilTransform() // SOILTRANSFORM
         let stringList = `${botWidth / 1000},${botLength / 1000}`.replace(/,/g, ' ').split(/\s/).filter(element => element);
         stringList = stringList.map(element => parseFloat(element));
@@ -58,7 +60,7 @@ export default class agriculture /*extends wbWorld*/ {
         elem.updateSize()
         this.webotsView._view.animation._view.x3dScene.render();
     }
-    createSoilBed_(widthMux = 1, lenMux = 1) {
+    createSoilBed_(widthMux = 1, lenMux = 1, initer = false) {
         let { appManager } = this
         let { bot } = appManager
         let { bedTypes, bedType, raised, raisedHeight, plankThickness, soilDepth } = bot,
@@ -77,6 +79,10 @@ export default class agriculture /*extends wbWorld*/ {
                 object.delete();
             })
             cloned.children[1].children = cloned.children[1].children.filter((elem, i) => parseInt(i) < 2)
+        }
+        if (initer) {
+            this.applyTransformation(soilInstance, "translation", [0, 0, 0.0001])
+            return
         }
         switch (bedType) {
             case "Wooden":
