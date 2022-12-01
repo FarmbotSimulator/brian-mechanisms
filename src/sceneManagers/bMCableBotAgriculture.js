@@ -5,7 +5,7 @@ export default class bMCableBotAgriculture extends agriculture {
         super()
         let boxLen = 100
         let holderRadius = 150
-        this.centerCenter = holderRadius + boxLen/2
+        this.centerCenter = holderRadius + boxLen / 2 // mm
         this.boxLen = boxLen
     }
     // return the transform that has the robot
@@ -130,8 +130,8 @@ export default class bMCableBotAgriculture extends agriculture {
         let zAxisLen = zAxis.scale.z * 0.75
         let zAxisLenMax = zAxisLen - 0.35
         let limits = {                                  // in mm
-            x: [(-botWidth / 2000) + this.centerCenter/1000, (botWidth / 2000) - this.centerCenter/1000],
-            y: [(-botLength / 2000) + this.centerCenter/1000, (botLength / 2000) - this.centerCenter/1000],
+            x: [(-botWidth / 2000) + this.centerCenter / 1000, (botWidth / 2000) - this.centerCenter / 1000],
+            y: [(-botLength / 2000) + this.centerCenter / 1000, (botLength / 2000) - this.centerCenter / 1000],
             z: [0, zAxisLenMax],
             // z: [0, 0],
         }
@@ -248,13 +248,13 @@ export default class bMCableBotAgriculture extends agriculture {
         this.applyTransformation(zAxis, "translation", [-z / 1000, 0, 0])
         let xes = [
             x_ - this.centerCenter / 2, x_ + this.centerCenter / 2, x_ + this.centerCenter / 2, x_ - this.centerCenter / 2 // corners
-        ]
+        ] // in mm
         let yes = [
             y_ - this.centerCenter / 2, y_ - this.centerCenter / 2, y_ + this.centerCenter / 2, y_ + this.centerCenter / 2 // corners
-        ]
+        ] // in mm
         for (let i = 0; i < 4; i++) {
-            let { poleNco, cable1, cable2, } = this.getRobotParts(i)
-            let cableLen = Math.sqrt(Math.pow(xes[i] - poleNco.translation.x, 2) + Math.pow(yes[i] - poleNco.translation.y, 2))
+            let { poleNco, cable1, cable2, cableZeroTransform } = this.getRobotParts(i)
+            let cableLen = Math.sqrt(Math.pow(xes[i] - poleNco.translation.x * 1000, 2) + Math.pow(yes[i] - poleNco.translation.y * 1000, 2))
             cableLen /= 1000
             this.applyTransformation(cable1, "scale", [1, 1, cableLen / 5]) // initial len is 5
             this.applyTransformation(cable2, "scale", [1, 1, cableLen / 5]) // initial len is 5
