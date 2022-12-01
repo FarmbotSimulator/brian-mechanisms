@@ -69,17 +69,18 @@ export default class bMCableBotAgriculture extends agriculture {
     }
     getRobotParts(root = 0) {
         root += 1
+        console.log({ root })
         let getRobotSNode = this.getRobotSNode();
         let poleNco = this.getDescendantNode(getRobotSNode, [root]) // this is what we want to duplicate
         let poleTransform = this.getDescendantNode(getRobotSNode, [root, 0]) // scale to change height. Initial height =2m. Also the z transform
         let cableholder = this.getDescendantNode(getRobotSNode, [root, 1]) // z, rotation
-        let cableZeroTransform = this.getDescendantNode(getRobotSNode, [root, 1, 0]) // Cable Len translation x, scale z
-        let cable1 = this.getDescendantNode(getRobotSNode, [root, 1, 0, 0]) // Cable Len translation x, scale z
-        let cable2 = this.getDescendantNode(getRobotSNode, [root, 1, 0, 1]) // Cable Len 
+        let cableZeroTransform = this.getDescendantNode(getRobotSNode, [root, 1, 0]) // rotate z 
+        let cableSubZeroTransform = this.getDescendantNode(getRobotSNode, [root, 1, 0, 0]) //  Len translation x
+        let cable1 = this.getDescendantNode(getRobotSNode, [root, 1, 0, 0, 0]) // Cable Len translation x, scale z
+        let cable2 = this.getDescendantNode(getRobotSNode, [root, 1, 0, 0, 1]) // Cable Len 
         let box = this.getDescendantNode(getRobotSNode, [0]) // only one box 
-        // let zAxisNco = this.getDescendantNode(getRobotSNode, [0, 1]) // only one box 
         let zAxis = this.getDescendantNode(getRobotSNode, [0, 1])
-        return { getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box, cableZeroTransform, zAxis }
+        return { getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box, cableZeroTransform, cableSubZeroTransform, zAxis }
     }
     positionPoles() {
         let { appManager } = this
@@ -89,8 +90,8 @@ export default class bMCableBotAgriculture extends agriculture {
         let locations = [
             [-botWidth / 2000, -botLength / 2000, 0],
             [botWidth / 2000, -botLength / 2000, 0],
-            [-botWidth / 2000, botLength / 2000, 0],
-            [botWidth / 2000, botLength / 2000, 0]
+            [botWidth / 2000, botLength / 2000, 0],
+            [-botWidth / 2000, botLength / 2000, 0]
         ]
         for (let i = 0; i < 4; i++) {
             let { poleNco } = this.getRobotParts(i)
@@ -125,7 +126,6 @@ export default class bMCableBotAgriculture extends agriculture {
         speed = speed || bot.location.speed
         speed *= bot.speedFactor
         let movingRequestId = ++this.movingRequestId
-        console.log("1111111111111111111111111", immediate)
         // calculate limits
         let zAxisLen = zAxis.scale.z * 0.75
         let zAxisLenMax = zAxisLen - 0.35
@@ -146,7 +146,6 @@ export default class bMCableBotAgriculture extends agriculture {
         else if (z > limits["z"][1]) z = limits["z"][1]
 
         if (immediate) { // ck
-            console.log("iimediate")
             console.log({ premits, x, y, z, limits })
             this.moveAxes(x, y, z)
             // this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x / 1000])
@@ -157,8 +156,8 @@ export default class bMCableBotAgriculture extends agriculture {
             bot.location.z = z
             this.webotsView._view.x3dScene.render();
         } else {// from the server. Joystick control will use immediate mode
-            let currentX = box.translation.x - (-botWidth / 2000)
-            let currentY = box.translation.y - (-botLength / 2000)
+            let currentX = box.translation.x - (-botWidth / 2000) - this.centerCenter / 1000
+            let currentY = box.translation.y - (-botLength / 2000) - this.centerCenter / 1000
             let currentZ = 0 //- zAxisNUTM.translation.x // ck
             currentX *= 1000
             currentY *= 1000
@@ -190,8 +189,8 @@ export default class bMCableBotAgriculture extends agriculture {
                     controller.publishLogs({ x, y, z }, motionType === 'relative') // take from controllers
                     return
                 }
-                currentX = box.translation.x - (-botWidth / 2000) // in meters
-                currentY = box.translation.y - (-botLength / 2000)
+                currentX = box.translation.x - (-botWidth / 2000) - this.centerCenter / 1000 // in meters
+                currentY = box.translation.y - (-botLength / 2000) - this.centerCenter / 1000
                 currentZ = 0//- zAxisNUTM.translation.x // ck
                 currentX *= 1000
                 currentY *= 1000
@@ -215,9 +214,6 @@ export default class bMCableBotAgriculture extends agriculture {
                     this.movingRequestId++ // to clear interval
                 }
                 this.moveAxes(x1, y1, z1)
-                // this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x1 / 1000])
-                // this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y1 / 1000, getRobotSNode.translation.z])
-                // this.applyTransformation(zAxisNUTM, "translation", [-z1 / 1000, 0, 0])
                 bot.location.x = x1
                 bot.location.y = y1
                 bot.location.z = z1
@@ -237,30 +233,65 @@ export default class bMCableBotAgriculture extends agriculture {
     }
 
     moveAxes(x, y, z) {
-        let { getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box, cableZeroTransform, zAxis } = this.getRobotParts(0)
+        let { getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box, cableZeroTransform, cableSubZeroTransform, zAxis } = this.getRobotParts(0)
         const appManager = super.appManager || this.appManager
         // let { bedType } = appManager.bot
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
         console.log("moving to ...", x, y, z)
         let x_ = x + this.centerCenter, y_ = y + this.centerCenter, z_ = z // center of box; with offsets applied
+        console.log({ cableholder })
         this.applyTransformation(box, "translation", [(-botWidth / 2 + x_) / 1000, (-botLength / 2 + y_) / 1000, cableholder.translation.z])
         this.applyTransformation(zAxis, "translation", [-z / 1000, 0, 0])
+
+
+        // x: [(-botWidth / 2000) + this.centerCenter / 1000, (botWidth / 2000) - this.centerCenter / 1000],
+        //     y: [(-botLength / 2000) + this.centerCenter / 1000, (botLength / 2000) - this.centerCenter / 1000],
+
         let xes = [
-            x_ - this.centerCenter / 2, x_ + this.centerCenter / 2, x_ + this.centerCenter / 2, x_ - this.centerCenter / 2 // corners
+            x_ - this.boxLen / 2,
+            x_ + this.boxLen / 2,
+            x_ + this.boxLen / 2,
+            x_ - this.boxLen / 2 // corners
         ] // in mm
+        xes = xes.map(elem => elem + (-botWidth / 2))
         let yes = [
-            y_ - this.centerCenter / 2, y_ - this.centerCenter / 2, y_ + this.centerCenter / 2, y_ + this.centerCenter / 2 // corners
+            y_ - this.boxLen / 2,
+            y_ - this.boxLen / 2,
+            y_ + this.boxLen / 2,
+            y_ + this.boxLen / 2 // corners
         ] // in mm
+        yes = yes.map(elem => elem + (-botLength / 2))
         for (let i = 0; i < 4; i++) {
-            let { poleNco, cable1, cable2, cableZeroTransform } = this.getRobotParts(i)
+            let { getRobotSNode, poleNco, cable1, cable2, cableZeroTransform, cableSubZeroTransform } = this.getRobotParts(i)
             let cableLen = Math.sqrt(Math.pow(xes[i] - poleNco.translation.x * 1000, 2) + Math.pow(yes[i] - poleNco.translation.y * 1000, 2))
             cableLen /= 1000
-            this.applyTransformation(cable1, "scale", [1, 1, cableLen / 5]) // initial len is 5
+            console.log({ diff: [(cableLen / 5) / 2, (cableLen / 5) / 2, 1] })
+            this.applyTransformation(cable1, "scale", [1, 1, cableLen / 5]) // initial len is 5m
             this.applyTransformation(cable2, "scale", [1, 1, cableLen / 5]) // initial len is 5
-            this.applyTransformation(cableZeroTransform, "translation", [(cableLen / 5) / 2, 1, 1])
-            // this.applyTransformation(cable1, "translation", [(cableLen / 5) / 2, 1, 1]) 
-            // this.applyTransformation(cable2, "translation", [(cableLen / 5) / 2, 1, 1])
+            this.applyTransformation(cableSubZeroTransform, "translation", [(cableLen) / 2, 0, 0])
+            console.log({ i, cableZeroTransform, getRobotSNode, id: poleNco.id, poleNco })
+            let ango = Math.atan((yes[i] - poleNco.translation.y * 1000) / (xes[i] - poleNco.translation.x * 1000))
+            switch (i) {
+                case 1:
+                    ango = Math.PI + ango // Angle is negative
+                    break
+                case 2:
+                    ango = Math.PI + ango // angle is positive
+                    break
+                case 3:
+                    ango = ango // angle is negative
+                    break
+            }
+
+            this.applyTransformation(cableZeroTransform, "rotation", [0, 0, 1, ango])
+            console.log({ ango })
+            /*
+                cable transform... length
+                    cable length
+                    cable translation
+                    cable angle
+            */
         }
     }
 
