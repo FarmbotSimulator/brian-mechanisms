@@ -3,8 +3,10 @@ import agriculture from "./agriculture"
 export default class bMCableBotAgriculture extends agriculture {
     constructor() {
         super()
-        this.offsetMM = 500
-        this.offsetM = this.offsetMM/1000
+        let boxLen = 100
+        let holderRadius = 150
+        this.centerCenter = holderRadius + boxLen/2
+        this.boxLen = boxLen
     }
     // return the transform that has the robot
     // is different for every bot
@@ -64,29 +66,6 @@ export default class bMCableBotAgriculture extends agriculture {
         }
 
         this.positionPoles()
-        // z position the box. How to determine length of poles... Its double of plantheight plus some margin
-        // console.log(this.getRobotParts(1))
-        // {
-        //     this.applyTransformation(gantryBeam, "scale", [1, 1, (botWidth * 4.65) / 3000])
-        //     this.applyTransformation(gantryBeam, "translation", [botWidth / (2 * 1000), gantryBeam.translation.y, /*gantryBeam.translation.z*/0.8 + (plantHeight - 500) / 1000])
-        // }
-        // {
-        //     this.applyTransformation(rightGantryColumn, "translation", [botWidth / (2 * 1000), 0, 0])
-        //     this.applyTransformation(rightGantryColumn.children[0], "scale", [1, 1, (650 + plantHeight - 500) / 650]) /// len = 650 mm
-        //     this.applyTransformation(rightGantryColumn.children[12], "translation", [0.012, -0.132, 0.067 + (plantHeight - 500) / 1000])
-        // }
-        // {
-        //     this.applyTransformation(leftGantryColumn, "translation", [-botWidth / (2 * 1000), 0, 0])
-        //     this.applyTransformation(leftGantryColumn.children[0], "scale", [1, 1, (650 + plantHeight - 500) / 650]) /// len = 650 mm
-        //     this.applyTransformation(leftGantryColumn.children[12], "translation", [-0.011, 0.001, 0.06 + (plantHeight - 500) / 1000])
-        // }
-
-        // this.applyTransformation(CrossSlideNCo, "translation", [0, 0, -botWidth / (2 * 1000)]) // take it to origin
-        // {
-        //     let zAxisLen = 500 + plantHeight
-        //     this.applyTransformation(zAxis, "scale", [1, 1, zAxisLen / 750]) // length is 75cm, but it ought to have been 1 m
-        // }
-        // this.webotsView._view.x3dScene.render();
     }
     getRobotParts(root = 0) {
         root += 1
@@ -151,13 +130,13 @@ export default class bMCableBotAgriculture extends agriculture {
         let zAxisLen = zAxis.scale.z * 0.75
         let zAxisLenMax = zAxisLen - 0.35
         let limits = {                                  // in mm
-            x: [(-botWidth / 2000) + 0.5, (botWidth / 2000) - 0.5],
-            y: [(-botLength / 2000) + 0.5, (botLength / 2000) - 0.5],
+            x: [(-botWidth / 2000) + this.centerCenter/1000, (botWidth / 2000) - this.centerCenter/1000],
+            y: [(-botLength / 2000) + this.centerCenter/1000, (botLength / 2000) - this.centerCenter/1000],
             z: [0, zAxisLenMax],
             // z: [0, 0],
         }
         let premits = { x, y, z }
-        let offsets = { x: (-botWidth / 2) + 500, y: (-botLength / 2) + 500, z: 0 }
+        let offsets = { x: (-botWidth / 2) + this.centerCenter, y: (-botLength / 2) + this.centerCenter, z: 0 }
         for (let key in limits) { limits[key] = limits[key].map(item => (item * 1000) - offsets[key]) }
         if (x < limits["x"][0]) x = limits["x"][0]
         else if (x > limits["x"][1]) x = limits["x"][1]
@@ -264,14 +243,14 @@ export default class bMCableBotAgriculture extends agriculture {
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
         console.log("moving to ...", x, y, z)
-        let x_ = x + 500, y_ = y + 500, z_ = z // center of box; with offsets applied
+        let x_ = x + this.centerCenter, y_ = y + this.centerCenter, z_ = z // center of box; with offsets applied
         this.applyTransformation(box, "translation", [(-botWidth / 2 + x_) / 1000, (-botLength / 2 + y_) / 1000, cableholder.translation.z])
         this.applyTransformation(zAxis, "translation", [-z / 1000, 0, 0])
         let xes = [
-            x_ - 500 / 2, x_ + 500 / 2, x_ + 500 / 2, x_ - 500 / 2 // corners
+            x_ - this.centerCenter / 2, x_ + this.centerCenter / 2, x_ + this.centerCenter / 2, x_ - this.centerCenter / 2 // corners
         ]
         let yes = [
-            y_ - 500 / 2, y_ - 500 / 2, y_ + 500 / 2, y_ + 500 / 2 // corners
+            y_ - this.centerCenter / 2, y_ - this.centerCenter / 2, y_ + this.centerCenter / 2, y_ + this.centerCenter / 2 // corners
         ]
         for (let i = 0; i < 4; i++) {
             let { poleNco, cable1, cable2, } = this.getRobotParts(i)
