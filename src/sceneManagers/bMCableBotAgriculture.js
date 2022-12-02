@@ -16,22 +16,12 @@ export default class bMCableBotAgriculture extends agriculture {
         return rootNode.children[1].children[1].children[1]
     }
     resizeGarden() {
-        // const cloned = this.getThisRootNode()
         const appManager = super.appManager || this.appManager
-        // let { bedType } = appManager.bot
         let botWidth = appManager.botSize.width,
             botLength = appManager.botSize.length
         this.resizeGarden_(botLength, botWidth)
-        // if (true || bedType === "Concrete") { // why? Oh why the condition
-        //     this.applyTransformation(cloned.children[0], "scale", [0, 0, 0])
-        // }
-        // this.createSoilBed_();
         this.createTransforms_()
-        // this.createLegs_() has  no legs
-        // this.createConcrete_() // has no concrete
-        // this.placeRobotZLocation() // already z positioned
         this.resizeRobot()
-        console.log("GONA MOVE")
         this.moveBot(true)
         //     this.positionPlants(instanceNumber)
     }
@@ -45,7 +35,6 @@ export default class bMCableBotAgriculture extends agriculture {
             botLength = appManager.botSize.length
         let { WbWorld } = this
         let { getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box } = this.getRobotParts(0)
-        console.log({ getRobotSNode, poleNco, poleTransform, cableholder, cable1, cable2, box })
         if (getRobotSNode.children.length > 2) { //check if other poles already exist
 
         }
@@ -57,19 +46,14 @@ export default class bMCableBotAgriculture extends agriculture {
                 WbWorld.instance.nodes.set(poleNcoCLone.id, poleNcoCLone)
                 poleNcoParent.children.push(poleNcoCLone)
                 poleNcoCLone.finalize()
-                console.log(i)
             }
-            console.log(cableholder.translation.z)
-            console.log({ cableholder })
-            this.applyTransformation(box, "translation", [0, 0, cableholder.translation.z])
-            console.log({ box })
+           this.applyTransformation(box, "translation", [0, 0, cableholder.translation.z])
         }
 
         this.positionPoles()
     }
     getRobotParts(root = 0) {
         root += 1
-        console.log({ root })
         let getRobotSNode = this.getRobotSNode();
         let poleNco = this.getDescendantNode(getRobotSNode, [root]) // this is what we want to duplicate
         let poleTransform = this.getDescendantNode(getRobotSNode, [root, 0]) // scale to change height. Initial height =2m. Also the z transform
@@ -95,22 +79,9 @@ export default class bMCableBotAgriculture extends agriculture {
         ]
         for (let i = 0; i < 4; i++) {
             let { poleNco } = this.getRobotParts(i)
-            console.log(poleNco)
             this.applyTransformation(poleNco, "translation", locations[i])
         }
     }
-    // placeRobotZLocation() { // gantry
-    //     let { getRobotSNode, CrossSlideNCoParent } = this.getRobotParts()//this.getRobotSNode()
-    //     let { appManager } = this
-    //     let { bot, orientation } = appManager
-    //     let { bedType } = bot
-    //     let z
-    //     if (bedType === "Concrete") {
-    //         z = 0.05
-    //     }
-    //     else z = 0.02
-    //     this.applyTransformation(getRobotSNode, "translation", [0, 0, z])
-    // }
 
     moveBot(immediate = false, location, motionType = 'dontcare') {
         let { appManager } = this
@@ -148,9 +119,6 @@ export default class bMCableBotAgriculture extends agriculture {
         if (immediate) { // ck
             console.log({ premits, x, y, z, limits })
             this.moveAxes(x, y, z)
-            // this.applyTransformation(CrossSlideNCo, "translation", [0, 0, (-botWidth / 2000) + x / 1000])
-            // this.applyTransformation(getRobotSNode, "translation", [0, (-botLength / 2000) + y / 1000, getRobotSNode.translation.z])
-            // this.applyTransformation(zAxisNUTM, "translation", [-z / 1000, 0, 0])
             bot.location.x = x
             bot.location.y = y
             bot.location.z = z
@@ -240,14 +208,8 @@ export default class bMCableBotAgriculture extends agriculture {
             botLength = appManager.botSize.length
         console.log("moving to ...", x, y, z)
         let x_ = x + this.centerCenter, y_ = y + this.centerCenter, z_ = z // center of box; with offsets applied
-        console.log({ cableholder })
         this.applyTransformation(box, "translation", [(-botWidth / 2 + x_) / 1000, (-botLength / 2 + y_) / 1000, cableholder.translation.z])
         this.applyTransformation(zAxis, "translation", [-z / 1000, 0, 0])
-
-
-        // x: [(-botWidth / 2000) + this.centerCenter / 1000, (botWidth / 2000) - this.centerCenter / 1000],
-        //     y: [(-botLength / 2000) + this.centerCenter / 1000, (botLength / 2000) - this.centerCenter / 1000],
-
         let xes = [
             x_ - this.boxLen / 2,
             x_ + this.boxLen / 2,
@@ -266,11 +228,9 @@ export default class bMCableBotAgriculture extends agriculture {
             let { getRobotSNode, poleNco, cable1, cable2, cableZeroTransform, cableSubZeroTransform } = this.getRobotParts(i)
             let cableLen = Math.sqrt(Math.pow(xes[i] - poleNco.translation.x * 1000, 2) + Math.pow(yes[i] - poleNco.translation.y * 1000, 2))
             cableLen /= 1000
-            console.log({ diff: [(cableLen / 5) / 2, (cableLen / 5) / 2, 1] })
             this.applyTransformation(cable1, "scale", [1, 1, cableLen / 5]) // initial len is 5m
             this.applyTransformation(cable2, "scale", [1, 1, cableLen / 5]) // initial len is 5
             this.applyTransformation(cableSubZeroTransform, "translation", [(cableLen) / 2, 0, 0])
-            console.log({ i, cableZeroTransform, getRobotSNode, id: poleNco.id, poleNco })
             let ango = Math.atan((yes[i] - poleNco.translation.y * 1000) / (xes[i] - poleNco.translation.x * 1000))
             switch (i) {
                 case 1:
@@ -285,13 +245,6 @@ export default class bMCableBotAgriculture extends agriculture {
             }
 
             this.applyTransformation(cableZeroTransform, "rotation", [0, 0, 1, ango])
-            console.log({ ango })
-            /*
-                cable transform... length
-                    cable length
-                    cable translation
-                    cable angle
-            */
         }
     }
 

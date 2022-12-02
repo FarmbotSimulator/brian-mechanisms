@@ -1,6 +1,12 @@
 import wbWorld from "./wbWorld.js"
 const wbWorld_ = new wbWorld()
 
+const plantShapes = {
+    "corn-mustard-1": {
+        shapeId: 4
+    }
+}
+
 export default class agriculture /*extends wbWorld*/ {
     constructor() {
         let parentFuncs = Object.getOwnPropertyNames(Object.getPrototypeOf(wbWorld_))
@@ -51,7 +57,7 @@ export default class agriculture /*extends wbWorld*/ {
         this.applyTransformation(cloned, "translation", [appManager.gardenLocation.y / 1000, appManager.gardenLocation.x / 1000, 0])
         this.applyTransformation(cloned, "scale", [1, 1, 1])
         this.applyTransformation(cloned, "rotation", [0, 0, 1, this.degrees_to_radians(orientation)])
-        console.log({cloned})
+        console.log({ cloned })
         let soilInstance = this.getSoilTransform() // SOILTRANSFORM
         let stringList = `${botWidth / 1000},${botLength / 1000}`.replace(/,/g, ' ').split(/\s/).filter(element => element);
         stringList = stringList.map(element => parseFloat(element));
@@ -435,7 +441,78 @@ export default class agriculture /*extends wbWorld*/ {
             botLength: botLength,
             date: new Date().toISOString(), // check. Needs to be read from somewhere
         }
-        // planter.place(this, options, instanceNumber) // different for different bots
-        // this.positionPlants(instanceNumber)
+        this.place(options)
+        this.positionPlants()
+    }
+    place(options) {
+        let points = this.plants
+        let missingPoints = Object.values(points).filter(item => item.nodeId === undefined)
+        missingPoints.map(item => {
+            let { planted_at, plant_stage, x, y, z, name, pointer_type, id } = item.plantData
+            let nodeId;
+            nodeId = this.placeGeneric(name)
+            if (nodeId) points[id]["nodeId"] = nodeId
+        })
+        this.webotsView._view.x3dScene.render();
+    }
+    getPlantShapeId(plantName) {
+        if (Object.keys(plantShapes).includes(plantName)) {
+            return plantShapes[plantName].shapeId
+        } else {
+            return Object.values(plantShapes).slice(-1)[0].shapeId
+        }
+    }
+    placeGeneric(plantName) {
+        let cloned = this.getRootNode()
+        let shapeId = this.getPlantShapeId(plantName)
+        console.log({ cloned })
+        let Corn = this.getDescendantNode(cloned, [0, 0, 4]) //cloned.children[0].children[shapeId]
+        let elem = Corn.clone()
+        elem.parent = cloned.children[1].children[1].id
+        this.WbWorld.instance.nodes.set(elem.id, elem)
+        cloned.children[1].children[1].children.push(elem)
+        elem.finalize()
+        this.applyTransformation(elem, "scale", [0.0001, 0.0001, 0.0001])
+        return elem.id
+    }
+
+    removeDeleted() {
+        let points = this.plants
+        if (points === undefined) return
+        Object.values(points).map(item => {
+            let { nodeId, deleted } = item
+            if (deleted) {
+                let object = this.WbWorld.instance.nodes.get(nodeId)
+                let objectId = object.id
+                let parentId = object.parent
+                let parentObj = this.WbWorld.instance.nodes.get(parentId)
+                object.delete();
+                parentObj.children = parentObj.children.filter((elem, i) => elem.id !== objectId)
+                delete this.plants[nodeId]
+            }
+        })
+        this.webotsView._view.animation._view.x3dScene.render();
+    }
+
+    // move to each
+    // move settings to json
+    positionPlants() {
+        let { appManager } = this,
+            botWidth = appManager.botSize.width,
+            botLength = appManager.botSize.length
+        let points = this.plants
+        if (points === undefined) return
+        Object.values(points).map(item => {
+            let { nodeId } = item
+            let { x, y } = item.plantData
+            x = parseFloat(x)
+            y = parseFloat(y)
+            let tmpItem = this.WbWorld.instance.nodes.get(nodeId)
+            if (tmpItem === undefined) return
+            this.applyTransformation(tmpItem, "translation", [(y - botWidth / 2) / 1000, (x - botLength / 2) / 1000, 0])
+            this.applyTransformation(tmpItem, "scale", [0.01, 0.01, 0.01])
+        })
+        this.webotsView._view.x3dScene.render();
+        this.removeDeleted()
     }
 }

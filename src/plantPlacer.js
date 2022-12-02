@@ -32,38 +32,37 @@ export class plantPlacer {
      * place 
      *
      */
-    place(parent, options, instanceNumber) {
-        let self = parent.instances[instanceNumber]
-        let points = self.plants
-        let missingPoints = Object.values(points).filter(item => item.nodeId === undefined)
-        missingPoints.map(item => {
-            let { planted_at, plant_stage, x, y, z, name, pointer_type, id } = item.plantData
-            let nodeId;
-            nodeId = this.placeGeneric(parent, instanceNumber, name)
-            if (nodeId) points[id]["nodeId"] = nodeId
-        })
-        parent.webotsView._view.animation._view.x3dScene.render();
-    }
-    getPlantShapeId(plantName) {
-        if (Object.keys(plantShapes).includes(plantName)) {
-            return plantShapes[plantName].shapeId
-        } else {
-            return Object.values(plantShapes).slice(-1)[0].shapeId
-        }
-    }
-    placeGeneric(parent, instanceNumber, plantName) {
-        let cloned = parent.getRootNode(instanceNumber)
-        let shapeId = this.getPlantShapeId(plantName)
-        let Corn = cloned.children[0].children[shapeId]
-        let elem = Corn.clone()
-        elem.parent = cloned.children[1].children[1].id
-        parent.WbWorld.instance.nodes.set(elem.id, elem)
-        cloned.children[1].children[1].children.push(elem)
-        elem.finalize()
-        let pose = { 'id': elem.id, "scale": [0.0001, 0.0001, 0.0001].join(",") };
-        parent.webotsView._view.x3dScene._applyPoseToObject(pose, elem)
-        return elem.id
-    }
+    // place(parent, options) {
+    //     let points = this.plants
+    //     let missingPoints = Object.values(points).filter(item => item.nodeId === undefined)
+    //     missingPoints.map(item => {
+    //         let { planted_at, plant_stage, x, y, z, name, pointer_type, id } = item.plantData
+    //         let nodeId;
+    //         nodeId = this.placeGeneric(parent, name)
+    //         if (nodeId) points[id]["nodeId"] = nodeId
+    //     })
+    //     parent.webotsView._view.animation._view.x3dScene.render();
+    // }
+    // getPlantShapeId(plantName) {
+    //     if (Object.keys(plantShapes).includes(plantName)) {
+    //         return plantShapes[plantName].shapeId
+    //     } else {
+    //         return Object.values(plantShapes).slice(-1)[0].shapeId
+    //     }
+    // }
+    // placeGeneric(parent, plantName) {
+    //     let cloned = parent.getThisRootNode()
+    //     let shapeId = this.getPlantShapeId(plantName)
+    //     let Corn = cloned.children[0].children[shapeId]
+    //     let elem = Corn.clone()
+    //     elem.parent = cloned.children[1].children[1].id
+    //     parent.WbWorld.instance.nodes.set(elem.id, elem)
+    //     cloned.children[1].children[1].children.push(elem)
+    //     elem.finalize()
+    //     let pose = { 'id': elem.id, "scale": [0.0001, 0.0001, 0.0001].join(",") };
+    //     parent.webotsView._view.x3dScene._applyPoseToObject(pose, elem)
+    //     return elem.id
+    // }
     positionPlants(parent, instanceNumber) {
         let self = parent.instances[instanceNumber]
         let points = self.plants
